@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "neverbor",
+  "description": "Neverbor — token-saving plugin for Claude Code.",
+  "owner": { "name": "koigkio" },
+  "plugins": [
+    {
+      "name": "neverbor",
+      "description": "Compresses tool output before it reaches the model and keeps answers terse.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
