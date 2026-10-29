@@ -47,8 +47,9 @@ def should_skip(command, cfg):
 
 def footer(before, after, path):
     return (
-        "\n[neverbor: output condensed %d→%d chars; full original: %s — "
-        "Read/Grep it only if the omitted part matters]" % (before, after, path)
+        "\n[neverbor: output condensed %d→%d chars, parts omitted — don't conclude something is "
+        "missing from this view; full original: %s (Grep/Read it when the omitted part matters)]"
+        % (before, after, path)
     )
 
 

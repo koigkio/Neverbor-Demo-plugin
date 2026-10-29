@@ -6,7 +6,8 @@ Ideas borrowed from headroom (github.com/headroomlabs-ai/headroom):
   * smart_crusher      -> crush_json (long arrays sampled, JSON minified)
   * CCR (reversible)   -> the caller saves the original and names it in a footer
 Own additions: passing-test and package-manager run collapsing, library stack
-frames, optional unified-diff context trimming, a "light" mode.
+frames, optional unified-diff context trimming, path lists grouped by folder,
+a "light" mode.
 """
 
 import json
@@ -71,8 +72,26 @@ def elide_dense_lines(text, min_len=600, head=160, tail=80):
     return "\n".join(out)
 
 
-def dedupe_runs(lines, min_run=3):
-    """Collapse runs of identical / same-shaped consecutive lines."""
+def _numeric_share(line):
+    """How much of a line is numbers / ids. When it's most of the line, the numbers are the data."""
+    return sum(len(m) for m in VOLATILE.findall(line)) / max(len(line.strip()), 1)
+
+
+def _span(lines):
+    """First volatile value that changes across lines, as "first…last", or ""."""
+    first, last = VOLATILE.findall(lines[0]), VOLATILE.findall(lines[-1])
+    for a, b in zip(first, last):
+        if a != b:
+            return " (%s…%s)" % (a, b)
+    return ""
+
+
+def dedupe_runs(lines, min_run=3, min_similar=6, max_numeric=0.3):
+    """Collapse runs of identical lines (>= min_run) or same-shaped lines (>= min_similar).
+
+    Same-shaped lines whose content is mostly numbers (ports, pids, sizes) are kept:
+    there the numbers are what the reader wants.
+    """
     out = []
     i = 0
     while i < len(lines):
@@ -81,15 +100,14 @@ def dedupe_runs(lines, min_run=3):
         while j < len(lines) and VOLATILE.sub("#", lines[j]).strip() == key:
             j += 1
         run = j - i
-        if run >= min_run and key:
-            exact = all(l == lines[i] for l in lines[i:j])
-            if exact:
-                out.append(lines[i])
-                out.append("  … (same line repeated %d more times)" % (run - 1))
-            else:
-                out.extend(lines[i : i + 2])
-                out.append("  … (%d similar lines)" % (run - 3))
-                out.append(lines[j - 1])
+        exact = all(l == lines[i] for l in lines[i:j])
+        if key and exact and run >= min_run:
+            out.append(lines[i])
+            out.append("  … (same line repeated %d more times)" % (run - 1))
+        elif key and not exact and run >= min_similar and _numeric_share(lines[i]) <= max_numeric:
+            out.extend(lines[i : i + 2])
+            out.append("  … (%d similar lines%s)" % (run - 3, _span(lines[i + 2 : j - 1])))
+            out.append(lines[j - 1])
         else:
             out.extend(lines[i:j])
         i = j
@@ -249,6 +267,56 @@ def crush_json(text):
     return json.dumps(_crush(data), ensure_ascii=False, separators=(",", ":"))
 
 
+PATH_LINE = re.compile(r"^\.{0,2}/?[^\s:]+(/[^/:]+)*/?$")
+
+
+def looks_like_paths(lines):
+    """`find`, `fd`, `git ls-files`, `rg --files`: almost every line a path with a slash."""
+    lines = [l for l in lines if l.strip()]
+    hits = sum(1 for l in lines if "/" in l and PATH_LINE.match(l))
+    return len(lines) > 0 and hits >= 0.9 * len(lines)
+
+
+def group_paths(lines, max_lines=150, list_up_to=3):
+    """Long path lists: one line per folder with entry count and extensions, instead of head+tail.
+
+    Unlike truncation this covers the whole tree, so "is there a folder for X?" stays answerable.
+    Starting from top-level folders, the biggest folder is split one level deeper while the
+    summary still fits in max_lines. Folders with few entries keep their names.
+    """
+    paths = [l.strip() for l in lines if l.strip()]
+    split = [p.rstrip("/").split("/") for p in paths]
+    groups = {(): list(range(len(paths)))}  # folder prefix -> indexes into paths
+    done = set()
+    while True:
+        open_ = [k for k in groups if k not in done and len(groups[k]) > list_up_to]
+        if not open_:
+            break
+        key = max(open_, key=lambda k: len(groups[k]))
+        depth = len(key) + 1
+        sub = {}
+        for i in groups[key]:
+            sub.setdefault(tuple(split[i][:-1][:depth]), []).append(i)
+        if len(sub) == 1 and key in sub or len(groups) - 1 + len(sub) > max_lines:
+            done.add(key)
+            continue
+        del groups[key]
+        groups.update(sub)
+    out = ["[neverbor: %d paths grouped by folder]" % len(paths)]
+    for key, items in sorted(groups.items(), key=lambda kv: kv[1][0]):
+        if len(items) <= list_up_to:
+            out.extend(paths[i] for i in items)
+            continue
+        exts = {}
+        for i in items:
+            name = split[i][-1]
+            ext = "*" + name[name.rfind("."):] if "." in name[1:] else "(no ext)"
+            exts[ext] = exts.get(ext, 0) + 1
+        top = ", ".join("%s ×%d" % kv for kv in sorted(exts.items(), key=lambda kv: -kv[1])[:4])
+        out.append("%s/ — %d entries (%s)" % ("/".join(key) or ".", len(items), top))
+    return out
+
+
 def compress_text(text, cfg=None):
     """Return compressed text, or None when it isn't worth it."""
     cfg = dict(DEFAULTS, **(cfg or {}))
@@ -267,9 +335,12 @@ def compress_text(text, cfg=None):
             lines = collapse_runs(lines, PASSING_TEST.search, "passing test lines")
             lines = collapse_runs(lines, INSTALL_NOISE.match, "package download/compile lines")
             lines = collapse_lib_frames(lines)
-            lines = dedupe_runs(lines)
-            if len(lines) > cfg["max_lines"]:
-                lines = keep_important(lines, cfg)
+            if len(lines) > cfg["max_lines"] and looks_like_paths(lines):
+                lines = group_paths(lines, cfg["max_lines"])
+            else:
+                lines = dedupe_runs(lines)
+                if len(lines) > cfg["max_lines"]:
+                    lines = keep_important(lines, cfg)
         out = "\n".join(lines)
 
     if len(out) > len(text) * (1 - cfg["min_saving"]):
