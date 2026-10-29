@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import sys
 import time
 
 import compress
@@ -36,6 +37,17 @@ MODES = {
     "normal": {},
     "aggressive": {"max_lines": 80, "head": 25, "tail": 20, "min_saving": 0.1},
 }
+
+
+def read_hook_input():
+    """Hook JSON arrives as UTF-8 whatever the console code page is (cp1252 on many Windows setups)."""
+    raw = sys.stdin.buffer.read().decode("utf-8-sig", "replace")
+    return json.loads(raw) if raw.strip() else {}
+
+
+def write_hook_output(data):
+    """ASCII-only JSON (non-ASCII as \\u escapes) can't fail on any console encoding."""
+    sys.stdout.write(json.dumps(data))
 
 
 def enabled():
@@ -90,7 +102,7 @@ def save_original(text):
     os.makedirs(CACHE, exist_ok=True)
     digest = hashlib.sha1(text.encode("utf-8", "replace")).hexdigest()[:10]
     path = os.path.join(CACHE, "%s-%s.txt" % (time.strftime("%Y%m%d-%H%M%S"), digest))
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8", errors="replace") as f:
         f.write(text)
     return path
 
@@ -107,7 +119,7 @@ def record(tool, original, new, session_id="", cmd=""):
         "cmd": cmd,
     }
     with open(LEDGER, "a", encoding="utf-8") as f:
-        f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        f.write(json.dumps(row) + "\n")
 
 
 def read_ledger():

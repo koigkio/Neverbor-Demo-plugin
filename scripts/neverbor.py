@@ -128,4 +128,8 @@ def main(args):
 
 
 if __name__ == "__main__":
+    # Windows consoles default to a legacy code page; the output has →, ≈ and Cyrillic.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     main(sys.argv[1:])

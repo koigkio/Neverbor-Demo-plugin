@@ -58,7 +58,17 @@
 claude plugin marketplace add koigkio/Neverbor-Demo-plugin && claude plugin install neverbor@neverbor
 ```
 
-После установки перезапустите сессию. Нужен только Python 3.8+ (в macOS он уже есть).
+После установки перезапустите сессию.
+
+**Что нужно:** Python 3.8 или новее. Neverbor сам найдёт его под именем `python3`, `python` или `py`.
+
+| Система | Что сделать |
+|---|---|
+| macOS | обычно ничего. Если Python нет, система при первом запуске предложит установить Command Line Tools — согласитесь |
+| Linux | обычно ничего: Python 3 есть почти везде. Если нет — `sudo apt install python3` или аналог |
+| Windows | установите Python с [python.org](https://www.python.org/downloads/) или из Microsoft Store |
+
+Если Python не найден, плагин просто ничего не делает и Claude Code работает как обычно.
 
 ## 🎛 Команды
 

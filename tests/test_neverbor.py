@@ -2,6 +2,7 @@
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -235,6 +236,41 @@ class QuietTest(unittest.TestCase):
         open(os.path.join(self.home, "quiet-on"), "w").close()
         for command in ("npm install && rm -rf x", "pip install -q x", "npm install $(cat list)", "git clone a | tee"):
             self.assertIsNone(self.pre(command), command)
+
+
+class PlatformTest(unittest.TestCase):
+    """Windows consoles often use cp1252; hooks must still read and write UTF-8 data."""
+
+    def setUp(self):
+        self.home = tempfile.mkdtemp()
+        self.env = dict(os.environ, NEVERBOR_HOME=self.home, PYTHONIOENCODING="cp1252")
+
+    def run_bytes(self, args, payload):
+        p = subprocess.run(args, input=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                           capture_output=True, env=self.env)
+        return p.returncode, p.stdout
+
+    def test_hook_with_cyrillic_under_cp1252(self):
+        log = BUILD_LOG + "\nОшибка сборки → смотри лог"
+        payload = bash("npm run build", log)
+        code, out = self.run_bytes([sys.executable, os.path.join(ROOT, "scripts", "post_tool.py")], payload)
+        self.assertEqual(code, 0)
+        stdout = json.loads(out.decode("ascii"))["hookSpecificOutput"]["updatedToolOutput"]["stdout"]
+        self.assertIn("Ошибка сборки → смотри лог", stdout)
+
+    def test_cli_under_cp1252(self):
+        run_hook(bash("npm run build", BUILD_LOG), self.home)
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "neverbor.py"), "stats"],
+                           capture_output=True, env=self.env)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("→", p.stdout.decode("utf-8"))
+
+    @unittest.skipIf(shutil.which("sh") is None, "no sh")
+    def test_launcher_runs_hook(self):
+        code, out = self.run_bytes(["sh", os.path.join(ROOT, "scripts", "run.sh"), "post_tool.py"],
+                                   bash("npm run build", BUILD_LOG))
+        self.assertEqual(code, 0)
+        self.assertIn(b"updatedToolOutput", out)
 
 
 if __name__ == "__main__":

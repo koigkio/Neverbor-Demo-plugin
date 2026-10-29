@@ -1,6 +1,6 @@
 {
   "name": "neverbor",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Saves Claude Code limits: compresses noisy Bash/MCP tool output before the model reads it (originals kept on disk) and adds terse-answer rules.",
   "author": { "name": "koigkio" },
   "keywords": ["tokens", "compression", "limits", "hooks", "context"]

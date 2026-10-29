@@ -6,7 +6,6 @@ always returned with permissionDecision "ask", so the user sees and approves the
 new command: the hook never widens what runs without their consent.
 """
 
-import json
 import os
 import re
 import sys
@@ -38,19 +37,19 @@ def quiet(command):
 def main():
     if not (state.enabled() and state.quiet_enabled()):
         return
-    data = json.loads(sys.stdin.read().lstrip("﻿"))
+    data = state.read_hook_input()
     tool_input = data.get("tool_input") or {}
     if data.get("tool_name") != "Bash" or not isinstance(tool_input.get("command"), str):
         return
     new = quiet(tool_input["command"])
     if new is None:
         return
-    json.dump({"hookSpecificOutput": {
+    state.write_hook_output({"hookSpecificOutput": {
         "hookEventName": "PreToolUse",
         "permissionDecision": "ask",
         "permissionDecisionReason": "neverbor quiet mode: %s" % new,
         "updatedInput": dict(tool_input, command=new),
-    }}, sys.stdout, ensure_ascii=False)
+    }})
 
 
 if __name__ == "__main__":

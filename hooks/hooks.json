@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/session_start.py\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run.sh\" session_start.py",
             "timeout": 10
           }
         ]
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/post_tool.py\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run.sh\" post_tool.py",
             "timeout": 10
           }
         ]
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/pre_tool.py\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run.sh\" pre_tool.py",
             "timeout": 10
           }
         ]
@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/stop.py\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run.sh\" stop.py",
             "timeout": 10
           }
         ]

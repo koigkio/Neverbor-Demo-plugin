@@ -4,7 +4,6 @@
 Nothing is added to the model's context. Small savings stay silent to avoid noise.
 """
 
-import json
 import os
 import sys
 
@@ -26,7 +25,7 @@ def fmt(n):
 def main():
     if not state.enabled():
         return
-    data = json.loads(sys.stdin.read().lstrip("﻿") or "{}")
+    data = state.read_hook_input()
     session_id = data.get("session_id") or ""
     if not session_id:
         return
@@ -38,8 +37,7 @@ def main():
     session["reported"] = total
     state.save_session(session_id, session)
     lang = state.load_config()["lang"]
-    json.dump({"systemMessage": MESSAGES.get(lang, MESSAGES["en"]) % (fmt(fresh), fmt(total))},
-              sys.stdout, ensure_ascii=False)
+    state.write_hook_output({"systemMessage": MESSAGES.get(lang, MESSAGES["en"]) % (fmt(fresh), fmt(total))})
 
 
 if __name__ == "__main__":

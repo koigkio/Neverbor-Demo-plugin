@@ -144,7 +144,7 @@ def handle_bash(resp, command, cfg, ctx):
 def main():
     if not state.enabled():
         return
-    data = json.loads(sys.stdin.read().lstrip("\ufeff"))
+    data = state.read_hook_input()
     tool = data.get("tool_name", "")
     resp = data.get("tool_response")
     cfg = state.load_config()
@@ -162,11 +162,7 @@ def main():
         return
 
     if new is not None:
-        json.dump(
-            {"hookSpecificOutput": {"hookEventName": "PostToolUse", "updatedToolOutput": new}},
-            sys.stdout,
-            ensure_ascii=False,
-        )
+        state.write_hook_output({"hookSpecificOutput": {"hookEventName": "PostToolUse", "updatedToolOutput": new}})
 
 
 if __name__ == "__main__":
@@ -174,5 +170,5 @@ if __name__ == "__main__":
         main()
     except Exception as e:  # fail open: never break the tool call
         if os.environ.get("NEVERBOR_DEBUG"):
-            print("neverbor: %r" % e, file=sys.stderr)
+            sys.stderr.write("neverbor: %s\n" % ascii(e))
     sys.exit(0)

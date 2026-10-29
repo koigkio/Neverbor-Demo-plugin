@@ -6,7 +6,6 @@ small, targeted reads — the same idea as ponytail's injected ruleset and
 headroom's "verbosity steering".
 """
 
-import json
 import os
 import sys
 
@@ -28,11 +27,10 @@ TERSE_RULES = """Token budget rules (neverbor plugin):
 
 
 def main():
-    data = {}
     try:
-        data = json.loads(sys.stdin.read().lstrip("\ufeff") or "{}")
+        data = state.read_hook_input()
     except ValueError:
-        pass
+        data = {}
     cfg = state.load_config()
     state.prune_cache(cfg["cache_days"])
     if data.get("source") in ("compact", "clear") and data.get("session_id"):
@@ -45,7 +43,7 @@ def main():
         if cfg["rules_extra"]:
             rules += "\n- " + cfg["rules_extra"].strip()
         context = rules + "\n\n" + FOOTER_NOTE
-    json.dump({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}, sys.stdout)
+    state.write_hook_output({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}})
 
 
 if __name__ == "__main__":
