@@ -17,4 +17,11 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m unittest discover -s tests -v
+      - name: unittest
+        shell: bash
+        run: |
+          # On failure, also publish the end of the log as an annotation (visible without signing in).
+          python -m unittest discover -s tests -v 2> log.txt && exit 0
+          cat log.txt
+          python -c "import sys; t = open('log.txt', encoding='utf-8', errors='replace').read()[-7000:]; print('::error title=unittest::' + t.replace('%', '%25').replace('\r', '').replace('\n', '%0A'))"
+          exit 1

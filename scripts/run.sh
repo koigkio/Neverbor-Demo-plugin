@@ -2,7 +2,8 @@
 # neverbor launcher: run a script with the first working Python 3.8+.
 # Windows often has `python` or `py` but no real `python3` (only a Store stub),
 # so try all three. No Python means "do nothing" (exit 0), never a broken session.
-case "$0" in */*) dir=${0%/*} ;; *) dir=. ;; esac
+# $0 may use / or, when started from Windows, \ as the separator.
+case "$0" in */* | *\\*) dir=${0%[/\\]*} ;; *) dir=. ;; esac
 script=$1
 shift
 for p in python3 python py; do
