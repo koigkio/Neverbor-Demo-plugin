@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """neverbor CLI: `neverbor.py [stats [today|week|all]|on|off|terse on|off|quiet on|off|reread on|off|brief|map [on|off]|
-mode <name>|config [key value]]`."""
+report|advise|statusline|mode <name>|config [key value]]`."""
 
 import json
 import os
@@ -10,10 +10,11 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import journal  # noqa: E402
 import projmap  # noqa: E402
+import report  # noqa: E402
 import state  # noqa: E402
 
 USAGE = ("usage: /neverbor [stats [today|week|all] | on | off | terse on|off | quiet on|off | "
-         "reread on|off | brief | map [on|off] | mode light|normal|aggressive | config [key value]]")
+         "reread on|off | brief | map [on|off] | report | advise | statusline | mode light|normal|aggressive | config [key value]]")
 PERIODS = {"today": None, "week": 7 * 86400, "all": None}
 
 
@@ -147,6 +148,16 @@ def main(args):
         print("neverbor: project map at session start %s" % sub.upper())
     elif cmd == "map" and not sub:
         print(projmap.get(os.getcwd()))
+    elif cmd == "report":
+        print("neverbor: report saved to %s" % report.write_report())
+    elif cmd == "advise":
+        for tip in report.advise():
+            print("- " + tip)
+    elif cmd == "statusline":
+        path = report.install_statusline()
+        print("neverbor: status line script saved to %s" % path)
+        print("Add to ~/.claude/settings.json (use `python` instead of `python3` on Windows):")
+        print(json.dumps({"statusLine": {"type": "command", "command": 'python3 "%s"' % path}}, indent=2))
     elif cmd == "mode" and sub in state.MODES:
         set_config("mode", sub)
         print("neverbor: mode %s" % sub)

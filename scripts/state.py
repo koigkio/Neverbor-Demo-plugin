@@ -110,7 +110,7 @@ def save_original(text):
     return path
 
 
-def record(tool, original, new, session_id="", cmd=""):
+def record(tool, original, new, session_id="", cmd="", path=""):
     os.makedirs(HOME, exist_ok=True)
     row = {
         "ts": int(time.time()),
@@ -121,14 +121,26 @@ def record(tool, original, new, session_id="", cmd=""):
         "session": session_id,
         "cmd": cmd,
     }
+    if path:
+        row["file"] = os.path.basename(path)  # lets an opened original be traced back to its command
     with open(LEDGER, "a", encoding="utf-8") as f:
         f.write(json.dumps(row) + "\n")
 
 
-def read_ledger():
+OPENS = os.path.join(HOME, "opens.jsonl")
+
+
+def note_open(path):
+    """Claude read a cached original: a sign that compression of that command hid too much."""
+    os.makedirs(HOME, exist_ok=True)
+    with open(OPENS, "a", encoding="utf-8") as f:
+        f.write(json.dumps({"ts": int(time.time()), "file": os.path.basename(path)}) + "\n")
+
+
+def read_ledger(path=LEDGER):
     rows = []
     try:
-        with open(LEDGER, encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 try:
                     rows.append(json.loads(line))

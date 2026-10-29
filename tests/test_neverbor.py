@@ -370,5 +370,50 @@ class MapTest(unittest.TestCase):
         self.assertNotIn("project map", self.start("resume"))
 
 
+class ReportTest(unittest.TestCase):
+    def setUp(self):
+        self.home = tempfile.mkdtemp()
+        self.env = dict(os.environ, NEVERBOR_HOME=self.home)
+        with open(os.path.join(self.home, "stats.jsonl"), "w") as f:
+            for i in range(30):
+                cmd = ("kubectl", "npm", "pytest")[i % 3]
+                f.write(json.dumps({"ts": 1, "tool": "Bash", "before": 9000, "after": 900, "tok": 2000,
+                                    "session": "s1", "cmd": cmd, "file": "f%d.txt" % i}) + "\n")
+        with open(os.path.join(self.home, "opens.jsonl"), "w") as f:
+            for i in (0, 3, 6, 9):  # kubectl originals
+                f.write(json.dumps({"ts": 1, "file": "f%d.txt" % i}) + "\n")
+
+    def cli(self, *args):
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "neverbor.py")] + list(args),
+                           capture_output=True, env=self.env)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        return p.stdout.decode("utf-8")
+
+    def test_advise(self):
+        out = self.cli("advise")
+        self.assertIn('passthrough "kubectl"', out)
+        self.assertIn("/neverbor quiet on", out)
+
+    def test_report_written(self):
+        self.cli("report")
+        with open(os.path.join(self.home, "report.html"), encoding="utf-8") as f:
+            page = f.read()
+        self.assertIn("<td>kubectl</td><td>10</td>", page)
+        self.assertEqual(page.count("<rect"), 30)
+
+    def test_statusline(self):
+        self.cli("statusline")
+        p = subprocess.run([sys.executable, os.path.join(self.home, "statusline.py")],
+                           input=b'{"session_id": "s1"}', capture_output=True)
+        self.assertEqual(p.stdout.decode(), "neverbor ~60.0k tokens saved")
+
+    def test_opened_original_is_logged(self):
+        path = os.path.join(self.home, "cache", "x.txt")
+        run_script("post_tool.py", {"session_id": "s1", "tool_name": "Read", "tool_input": {"file_path": path},
+                                    "tool_response": {}}, self.home)
+        with open(os.path.join(self.home, "opens.jsonl")) as f:
+            self.assertEqual(len(f.readlines()), 5)
+
+
 if __name__ == "__main__":
     unittest.main()

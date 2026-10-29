@@ -75,7 +75,7 @@ def neverbor_bash(resp, cfg, ctx):
         stdout += footer(len(original), after, path)
     else:
         stderr += footer(len(original), after, path)
-    state.record("Bash", original, joined(stdout, stderr), **ctx)
+    state.record("Bash", original, joined(stdout, stderr), path=path, **ctx)
     return dict(resp, stdout=stdout, stderr=stderr), path
 
 
@@ -95,7 +95,7 @@ def neverbor_mcp(tool, resp, cfg, ctx):
             return None
         path = state.save_original(resp)
         new += footer(len(resp), len(new), path)
-        state.record(tool, resp, new, **ctx)
+        state.record(tool, resp, new, path=path, **ctx)
         return new
 
     blocks = resp.get("content") if isinstance(resp, dict) else resp
@@ -111,7 +111,7 @@ def neverbor_mcp(tool, resp, cfg, ctx):
             continue
         path = state.save_original(text)
         new += footer(len(text), len(new), path)
-        state.record(tool, text, new, **ctx)
+        state.record(tool, text, new, path=path, **ctx)
         out_blocks.append(dict(block, text=new))
         changed = True
     if not changed:
@@ -141,6 +141,13 @@ def handle_bash(resp, command, cfg, ctx):
                             time.strftime("%H:%M:%S")]
     state.save_session(session_id, session)
     return new
+
+
+def in_cache(path):
+    if not isinstance(path, str) or not path:
+        return False
+    norm = lambda p: os.path.normcase(os.path.abspath(p))  # noqa: E731 — Windows: case and slashes
+    return norm(path).startswith(norm(state.CACHE) + os.sep)
 
 
 def handle_read(resp, tool_input, session_id):
@@ -179,6 +186,9 @@ def main():
     words = last_stage(command).split()
     ctx = {"session_id": session_id, "cmd": words[0] if words else ""}
 
+    if tool == "Read" and in_cache(tool_input.get("file_path")):
+        state.note_open(tool_input["file_path"])
+        return
     if tool == "Read":
         new = handle_read(resp, tool_input, session_id) if cfg["reread"] else None
     elif tool == "Bash" and isinstance(resp, dict):
