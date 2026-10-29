@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""neverbor CLI: `neverbor.py [stats [today|week|all]|on|off|terse on|off|quiet on|off|reread on|off|brief|
+"""neverbor CLI: `neverbor.py [stats [today|week|all]|on|off|terse on|off|quiet on|off|reread on|off|brief|map [on|off]|
 mode <name>|config [key value]]`."""
 
 import json
@@ -9,10 +9,11 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import journal  # noqa: E402
+import projmap  # noqa: E402
 import state  # noqa: E402
 
 USAGE = ("usage: /neverbor [stats [today|week|all] | on | off | terse on|off | quiet on|off | "
-         "reread on|off | brief | mode light|normal|aggressive | config [key value]]")
+         "reread on|off | brief | map [on|off] | mode light|normal|aggressive | config [key value]]")
 PERIODS = {"today": None, "week": 7 * 86400, "all": None}
 
 
@@ -141,6 +142,11 @@ def main(args):
         print("neverbor: re-read pointers %s" % sub.upper())
     elif cmd == "brief":
         brief()
+    elif cmd == "map" and sub in ("on", "off"):
+        set_config("map_on_start", sub == "on")
+        print("neverbor: project map at session start %s" % sub.upper())
+    elif cmd == "map" and not sub:
+        print(projmap.get(os.getcwd()))
     elif cmd == "mode" and sub in state.MODES:
         set_config("mode", sub)
         print("neverbor: mode %s" % sub)

@@ -12,6 +12,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import journal  # noqa: E402
+import projmap  # noqa: E402
 import state  # noqa: E402
 
 FOOTER_NOTE = (
@@ -43,6 +44,8 @@ def main():
         journal.forget_reads(session_id)
         if data["source"] == "compact" and cfg["brief"]:
             parts.append(journal.brief(state.load_session(session_id), data.get("cwd") or ""))
+    if data.get("source") == "startup" and cfg["map_on_start"] and data.get("cwd"):
+        parts.append(projmap.get(data["cwd"]))
     if state.enabled():
         if state.terse_enabled():
             rules = TERSE_RULES

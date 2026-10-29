@@ -341,5 +341,34 @@ class JournalTest(unittest.TestCase):
         self.assertIsNone(self.read())  # edited: full again
 
 
+class MapTest(unittest.TestCase):
+    def setUp(self):
+        self.home = tempfile.mkdtemp()
+        self.root = tempfile.mkdtemp()
+        for rel in ("src/a.ts", "src/b.ts", "node_modules/x/index.js", "Makefile", "package.json"):
+            os.makedirs(os.path.join(self.root, os.path.dirname(rel)), exist_ok=True)
+            with open(os.path.join(self.root, rel), "w") as f:
+                f.write({"Makefile": "build:\n\tcc\ntest:\n\tcc\n",
+                         "package.json": '{"scripts": {"dev": "vite"}}'}.get(rel, ""))
+
+    def start(self, source="startup"):
+        out = run_script("session_start.py", {"session_id": "s1", "source": source, "cwd": self.root}, self.home)
+        return out["hookSpecificOutput"]["additionalContext"]
+
+    def test_map_off_by_default(self):
+        self.assertNotIn("project map", self.start())
+
+    def test_map_on_start(self):
+        with open(os.path.join(self.home, "config.json"), "w") as f:
+            json.dump({"map_on_start": True}, f)
+        ctx = self.start()
+        self.assertIn("project map", ctx)
+        self.assertIn("src/ (2)", ctx)
+        self.assertNotIn("node_modules", ctx)
+        self.assertIn("make targets: build, test", ctx)
+        self.assertIn("dev (`vite`)", ctx)
+        self.assertNotIn("project map", self.start("resume"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -31,6 +31,7 @@ DEFAULTS = dict(
     lang="en",  # language of the end-of-reply savings message: en | ru
     brief=True,  # put a short work log back into context after /compact
     reread=False,  # replace a full re-read of an unchanged file with a pointer
+    map_on_start=False,  # put the project map into context at session start
 )
 
 # Presets sit between the defaults and the user's own keys.
