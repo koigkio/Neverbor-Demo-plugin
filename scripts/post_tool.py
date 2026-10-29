@@ -7,10 +7,12 @@ the worst case of a bug here is "no compression", never a broken result.
 Any exception -> exit 0 with no output (fail open).
 """
 
+import hashlib
 import json
 import os
 import re
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import compress  # noqa: E402
@@ -22,19 +24,24 @@ PASSTHROUGH = re.compile(
     r"^(cat|bat|head|tail|sed|awk|less|more|nl|wc|jq|yq|diff|git\s+(diff|show|blame)|"
     r"gh\s+pr\s+diff|base64|xxd|od)\b"
 )
+DIFF_COMMAND = re.compile(r"^(diff|git\s+(diff|show)|gh\s+pr\s+diff)\b")
+
+# Outputs shorter than this aren't worth replacing with a "same as before" pointer.
+REPEAT_MIN_CHARS = 300
 
 
 def last_stage(command):
     return re.split(r"&&|\|\||;|\|", command)[-1].strip()
 
 
-def should_skip(command):
+def should_skip(command, cfg):
     if "neverbor:off" in command:
         return True
-    extra = os.environ.get("NEVERBOR_PASSTHROUGH", "")
     stage = last_stage(command)
-    if extra and re.match(r"^(%s)\b" % extra, stage):
+    if cfg["passthrough"] and re.match(r"^(%s)\b" % cfg["passthrough"], stage):
         return True
+    if cfg["compress_diff"] and DIFF_COMMAND.match(stage):
+        return False
     return bool(PASSTHROUGH.match(stage))
 
 
@@ -45,35 +52,49 @@ def footer(before, after, path):
     )
 
 
-def neverbor_bash(resp):
+def joined(stdout, stderr):
+    return stdout + ("\n--- stderr ---\n" + stderr if stderr else "")
+
+
+def neverbor_bash(resp, cfg, ctx):
+    """Returns (new response or None, path of the saved original or None)."""
     stdout = resp.get("stdout") or ""
     stderr = resp.get("stderr") or ""
-    new_out = compress.compress_text(stdout)
-    new_err = compress.compress_text(stderr)
+    new_out = compress.compress_text(stdout, cfg)
+    new_err = compress.compress_text(stderr, cfg)
     if new_out is None and new_err is None:
-        return None
-    before = len(stdout) + len(stderr)
-    path = state.save_original(stdout + ("\n--- stderr ---\n" + stderr if stderr else ""))
+        return None, None
+    original = joined(stdout, stderr)
+    path = state.save_original(original)
     stdout = new_out if new_out is not None else stdout
     stderr = new_err if new_err is not None else stderr
     after = len(stdout) + len(stderr)
     if new_out is not None:
-        stdout += footer(before, after, path)
+        stdout += footer(len(original), after, path)
     else:
-        stderr += footer(before, after, path)
-    state.record("Bash", before, after)
-    return dict(resp, stdout=stdout, stderr=stderr)
+        stderr += footer(len(original), after, path)
+    state.record("Bash", original, joined(stdout, stderr), **ctx)
+    return dict(resp, stdout=stdout, stderr=stderr), path
 
 
-def neverbor_mcp(tool, resp):
+def repeat_of(resp, command, session):
+    """If this session already saw this exact command + output, point back to it instead."""
+    key = hashlib.sha1(
+        "\0".join((command, resp.get("stdout") or "", resp.get("stderr") or "")).encode("utf-8", "replace")
+    ).hexdigest()
+    return key, session["seen"].get(key)
+
+
+def neverbor_mcp(tool, resp, cfg, ctx):
     """MCP results: a string, a list of content blocks, or {"content": [...]}."""
     if isinstance(resp, str):
-        new = compress.compress_text(resp)
+        new = compress.compress_text(resp, cfg)
         if new is None:
             return None
         path = state.save_original(resp)
-        state.record(tool, len(resp), len(new))
-        return new + footer(len(resp), len(new), path)
+        new += footer(len(resp), len(new), path)
+        state.record(tool, resp, new, **ctx)
+        return new
 
     blocks = resp.get("content") if isinstance(resp, dict) else resp
     if not isinstance(blocks, list):
@@ -82,32 +103,61 @@ def neverbor_mcp(tool, resp):
     out_blocks = []
     for block in blocks:
         text = block.get("text") if isinstance(block, dict) and block.get("type") == "text" else None
-        new = compress.compress_text(text) if text else None
+        new = compress.compress_text(text, cfg) if text else None
         if new is None:
             out_blocks.append(block)
             continue
         path = state.save_original(text)
-        state.record(tool, len(text), len(new))
-        out_blocks.append(dict(block, text=new + footer(len(text), len(new), path)))
+        new += footer(len(text), len(new), path)
+        state.record(tool, text, new, **ctx)
+        out_blocks.append(dict(block, text=new))
         changed = True
     if not changed:
         return None
     return dict(resp, content=out_blocks) if isinstance(resp, dict) else out_blocks
 
 
+def handle_bash(resp, command, cfg, ctx):
+    session_id = ctx["session_id"]
+    size = len(resp.get("stdout") or "") + len(resp.get("stderr") or "")
+    if not session_id or size < REPEAT_MIN_CHARS:
+        return neverbor_bash(resp, cfg, ctx)[0]
+
+    session = state.load_session(session_id)
+    key, seen = repeat_of(resp, command, session)
+    if seen:
+        path, when = seen
+        note = (
+            "[neverbor: output identical to the same command run at %s (%d chars); full output: %s — "
+            "Read it only if it is no longer in your context]" % (when, size, path)
+        )
+        state.record("Bash", joined(resp.get("stdout") or "", resp.get("stderr") or ""), note, **ctx)
+        return dict(resp, stdout=note, stderr="")
+
+    new, path = neverbor_bash(resp, cfg, ctx)
+    session["seen"][key] = [path or state.save_original(joined(resp.get("stdout") or "", resp.get("stderr") or "")),
+                            time.strftime("%H:%M:%S")]
+    state.save_session(session_id, session)
+    return new
+
+
 def main():
     if not state.enabled():
         return
-    data = json.loads(sys.stdin.read().lstrip("﻿"))
+    data = json.loads(sys.stdin.read().lstrip("\ufeff"))
     tool = data.get("tool_name", "")
     resp = data.get("tool_response")
+    cfg = state.load_config()
+    command = (data.get("tool_input") or {}).get("command", "") if tool == "Bash" else ""
+    words = last_stage(command).split()
+    ctx = {"session_id": data.get("session_id") or "", "cmd": words[0] if words else ""}
 
     if tool == "Bash" and isinstance(resp, dict):
-        if should_skip((data.get("tool_input") or {}).get("command", "")):
+        if should_skip(command, cfg):
             return
-        new = neverbor_bash(resp)
+        new = handle_bash(resp, command, cfg, ctx)
     elif tool.startswith("mcp__"):
-        new = neverbor_mcp(tool, resp)
+        new = neverbor_mcp(tool, resp, cfg, ctx)
     else:
         return
 

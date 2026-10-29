@@ -1,0 +1,223 @@
+Collecting package-0>=1.0
+  Downloading package_0-1.0.0-py3-none-any.whl (20 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.0/20.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-1>=1.1
+  Downloading package_1-1.1.0-py3-none-any.whl (21 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 21.0/21.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-2>=1.2
+  Downloading package_2-1.2.0-py3-none-any.whl (22 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 22.0/22.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-3>=1.3
+  Downloading package_3-1.3.0-py3-none-any.whl (23 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 23.0/23.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-4>=1.4
+  Downloading package_4-1.4.0-py3-none-any.whl (24 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.0/24.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-5>=1.5
+  Downloading package_5-1.5.0-py3-none-any.whl (25 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 25.0/25.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-6>=1.6
+  Downloading package_6-1.6.0-py3-none-any.whl (26 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 26.0/26.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-7>=1.7
+  Downloading package_7-1.7.0-py3-none-any.whl (27 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 27.0/27.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-8>=1.8
+  Downloading package_8-1.8.0-py3-none-any.whl (28 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 28.0/28.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-9>=1.9
+  Downloading package_9-1.9.0-py3-none-any.whl (29 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 29.0/29.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-10>=1.10
+  Downloading package_10-1.10.0-py3-none-any.whl (30 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 30.0/30.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-11>=1.11
+  Downloading package_11-1.11.0-py3-none-any.whl (31 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 31.0/31.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-12>=1.12
+  Downloading package_12-1.12.0-py3-none-any.whl (32 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 32.0/32.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-13>=1.13
+  Downloading package_13-1.13.0-py3-none-any.whl (33 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 33.0/33.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-14>=1.14
+  Downloading package_14-1.14.0-py3-none-any.whl (34 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 34.0/34.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-15>=1.15
+  Downloading package_15-1.15.0-py3-none-any.whl (35 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.0/35.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-16>=1.16
+  Downloading package_16-1.16.0-py3-none-any.whl (36 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 36.0/36.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-17>=1.17
+  Downloading package_17-1.17.0-py3-none-any.whl (37 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 37.0/37.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-18>=1.18
+  Downloading package_18-1.18.0-py3-none-any.whl (38 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 38.0/38.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-19>=1.19
+  Downloading package_19-1.19.0-py3-none-any.whl (39 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 39.0/39.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-20>=1.20
+  Downloading package_20-1.20.0-py3-none-any.whl (40 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.0/40.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-21>=1.21
+  Downloading package_21-1.21.0-py3-none-any.whl (41 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 41.0/41.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-22>=1.22
+  Downloading package_22-1.22.0-py3-none-any.whl (42 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.0/42.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-23>=1.23
+  Downloading package_23-1.23.0-py3-none-any.whl (43 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 43.0/43.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-24>=1.24
+  Downloading package_24-1.24.0-py3-none-any.whl (44 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.0/44.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-25>=1.25
+  Downloading package_25-1.25.0-py3-none-any.whl (45 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.0/45.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-26>=1.26
+  Downloading package_26-1.26.0-py3-none-any.whl (46 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 46.0/46.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-27>=1.27
+  Downloading package_27-1.27.0-py3-none-any.whl (47 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 47.0/47.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-28>=1.28
+  Downloading package_28-1.28.0-py3-none-any.whl (48 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 48.0/48.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-29>=1.29
+  Downloading package_29-1.29.0-py3-none-any.whl (49 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 49.0/49.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-30>=1.30
+  Downloading package_30-1.30.0-py3-none-any.whl (50 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.0/50.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-31>=1.31
+  Downloading package_31-1.31.0-py3-none-any.whl (51 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 51.0/51.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-32>=1.32
+  Downloading package_32-1.32.0-py3-none-any.whl (52 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 52.0/52.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-33>=1.33
+  Downloading package_33-1.33.0-py3-none-any.whl (53 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 53.0/53.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-34>=1.34
+  Downloading package_34-1.34.0-py3-none-any.whl (54 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 54.0/54.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-35>=1.35
+  Downloading package_35-1.35.0-py3-none-any.whl (55 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 55.0/55.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-36>=1.36
+  Downloading package_36-1.36.0-py3-none-any.whl (56 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 56.0/56.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-37>=1.37
+  Downloading package_37-1.37.0-py3-none-any.whl (57 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 57.0/57.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-38>=1.38
+  Downloading package_38-1.38.0-py3-none-any.whl (58 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 58.0/58.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-39>=1.39
+  Downloading package_39-1.39.0-py3-none-any.whl (59 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 59.0/59.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-40>=1.40
+  Downloading package_40-1.40.0-py3-none-any.whl (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.0/60.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-41>=1.41
+  Downloading package_41-1.41.0-py3-none-any.whl (61 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 61.0/61.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-42>=1.42
+  Downloading package_42-1.42.0-py3-none-any.whl (62 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.0/62.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-43>=1.43
+  Downloading package_43-1.43.0-py3-none-any.whl (63 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 63.0/63.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-44>=1.44
+  Downloading package_44-1.44.0-py3-none-any.whl (64 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.0/64.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-45>=1.45
+  Downloading package_45-1.45.0-py3-none-any.whl (65 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 65.0/65.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-46>=1.46
+  Downloading package_46-1.46.0-py3-none-any.whl (66 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 66.0/66.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-47>=1.47
+  Downloading package_47-1.47.0-py3-none-any.whl (67 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 67.0/67.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-48>=1.48
+  Downloading package_48-1.48.0-py3-none-any.whl (68 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.0/68.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-49>=1.49
+  Downloading package_49-1.49.0-py3-none-any.whl (69 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.0/69.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-50>=1.50
+  Downloading package_50-1.50.0-py3-none-any.whl (70 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 70.0/70.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-51>=1.51
+  Downloading package_51-1.51.0-py3-none-any.whl (71 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 71.0/71.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-52>=1.52
+  Downloading package_52-1.52.0-py3-none-any.whl (72 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 72.0/72.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-53>=1.53
+  Downloading package_53-1.53.0-py3-none-any.whl (73 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.0/73.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-54>=1.54
+  Downloading package_54-1.54.0-py3-none-any.whl (74 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 74.0/74.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-55>=1.55
+  Downloading package_55-1.55.0-py3-none-any.whl (75 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 75.0/75.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-56>=1.56
+  Downloading package_56-1.56.0-py3-none-any.whl (76 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 76.0/76.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-57>=1.57
+  Downloading package_57-1.57.0-py3-none-any.whl (77 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 77.0/77.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-58>=1.58
+  Downloading package_58-1.58.0-py3-none-any.whl (78 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.0/78.0 kB 2.1 MB/s eta 0:00:00
+Collecting package-59>=1.59
+  Downloading package_59-1.59.0-py3-none-any.whl (79 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 79.0/79.0 kB 2.1 MB/s eta 0:00:00
+WARNING: package-17 1.17.0 does not provide the extra 'speedups'
+Requirement already satisfied: dep-0 in ./venv/lib/python3.12/site-packages (2.0)
+Requirement already satisfied: dep-1 in ./venv/lib/python3.12/site-packages (2.1)
+Requirement already satisfied: dep-2 in ./venv/lib/python3.12/site-packages (2.2)
+Requirement already satisfied: dep-3 in ./venv/lib/python3.12/site-packages (2.3)
+Requirement already satisfied: dep-4 in ./venv/lib/python3.12/site-packages (2.4)
+Requirement already satisfied: dep-5 in ./venv/lib/python3.12/site-packages (2.5)
+Requirement already satisfied: dep-6 in ./venv/lib/python3.12/site-packages (2.6)
+Requirement already satisfied: dep-7 in ./venv/lib/python3.12/site-packages (2.7)
+Requirement already satisfied: dep-8 in ./venv/lib/python3.12/site-packages (2.8)
+Requirement already satisfied: dep-9 in ./venv/lib/python3.12/site-packages (2.9)
+Requirement already satisfied: dep-10 in ./venv/lib/python3.12/site-packages (2.10)
+Requirement already satisfied: dep-11 in ./venv/lib/python3.12/site-packages (2.11)
+Requirement already satisfied: dep-12 in ./venv/lib/python3.12/site-packages (2.12)
+Requirement already satisfied: dep-13 in ./venv/lib/python3.12/site-packages (2.13)
+Requirement already satisfied: dep-14 in ./venv/lib/python3.12/site-packages (2.14)
+Requirement already satisfied: dep-15 in ./venv/lib/python3.12/site-packages (2.15)
+Requirement already satisfied: dep-16 in ./venv/lib/python3.12/site-packages (2.16)
+Requirement already satisfied: dep-17 in ./venv/lib/python3.12/site-packages (2.17)
+Requirement already satisfied: dep-18 in ./venv/lib/python3.12/site-packages (2.18)
+Requirement already satisfied: dep-19 in ./venv/lib/python3.12/site-packages (2.19)
+Requirement already satisfied: dep-20 in ./venv/lib/python3.12/site-packages (2.20)
+Requirement already satisfied: dep-21 in ./venv/lib/python3.12/site-packages (2.21)
+Requirement already satisfied: dep-22 in ./venv/lib/python3.12/site-packages (2.22)
+Requirement already satisfied: dep-23 in ./venv/lib/python3.12/site-packages (2.23)
+Requirement already satisfied: dep-24 in ./venv/lib/python3.12/site-packages (2.24)
+Requirement already satisfied: dep-25 in ./venv/lib/python3.12/site-packages (2.25)
+Requirement already satisfied: dep-26 in ./venv/lib/python3.12/site-packages (2.26)
+Requirement already satisfied: dep-27 in ./venv/lib/python3.12/site-packages (2.27)
+Requirement already satisfied: dep-28 in ./venv/lib/python3.12/site-packages (2.28)
+Requirement already satisfied: dep-29 in ./venv/lib/python3.12/site-packages (2.29)
+Requirement already satisfied: dep-30 in ./venv/lib/python3.12/site-packages (2.30)
+Requirement already satisfied: dep-31 in ./venv/lib/python3.12/site-packages (2.31)
+Requirement already satisfied: dep-32 in ./venv/lib/python3.12/site-packages (2.32)
+Requirement already satisfied: dep-33 in ./venv/lib/python3.12/site-packages (2.33)
+Requirement already satisfied: dep-34 in ./venv/lib/python3.12/site-packages (2.34)
+Requirement already satisfied: dep-35 in ./venv/lib/python3.12/site-packages (2.35)
+Requirement already satisfied: dep-36 in ./venv/lib/python3.12/site-packages (2.36)
+Requirement already satisfied: dep-37 in ./venv/lib/python3.12/site-packages (2.37)
+Requirement already satisfied: dep-38 in ./venv/lib/python3.12/site-packages (2.38)
+Requirement already satisfied: dep-39 in ./venv/lib/python3.12/site-packages (2.39)
+Installing collected packages: package-0, package-1, package-2, package-3, package-4, package-5, package-6, package-7, package-8, package-9, package-10, package-11, package-12, package-13, package-14, package-15, package-16, package-17, package-18, package-19, package-20, package-21, package-22, package-23, package-24, package-25, package-26, package-27, package-28, package-29, package-30, package-31, package-32, package-33, package-34, package-35, package-36, package-37, package-38, package-39, package-40, package-41, package-42, package-43, package-44, package-45, package-46, package-47, package-48, package-49, package-50, package-51, package-52, package-53, package-54, package-55, package-56, package-57, package-58, package-59
+Successfully installed package-0-1.0.0 package-1-1.1.0 package-2-1.2.0 package-3-1.3.0 package-4-1.4.0 package-5-1.5.0 package-6-1.6.0 package-7-1.7.0 package-8-1.8.0 package-9-1.9.0 package-10-1.10.0 package-11-1.11.0 package-12-1.12.0 package-13-1.13.0 package-14-1.14.0 package-15-1.15.0 package-16-1.16.0 package-17-1.17.0 package-18-1.18.0 package-19-1.19.0 package-20-1.20.0 package-21-1.21.0 package-22-1.22.0 package-23-1.23.0 package-24-1.24.0 package-25-1.25.0 package-26-1.26.0 package-27-1.27.0 package-28-1.28.0 package-29-1.29.0 package-30-1.30.0 package-31-1.31.0 package-32-1.32.0 package-33-1.33.0 package-34-1.34.0 package-35-1.35.0 package-36-1.36.0 package-37-1.37.0 package-38-1.38.0 package-39-1.39.0 package-40-1.40.0 package-41-1.41.0 package-42-1.42.0 package-43-1.43.0 package-44-1.44.0 package-45-1.45.0 package-46-1.46.0 package-47-1.47.0 package-48-1.48.0 package-49-1.49.0 package-50-1.50.0 package-51-1.51.0 package-52-1.52.0 package-53-1.53.0 package-54-1.54.0 package-55-1.55.0 package-56-1.56.0 package-57-1.57.0 package-58-1.58.0 package-59-1.59.0

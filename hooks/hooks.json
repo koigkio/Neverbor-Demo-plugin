@@ -1,5 +1,5 @@
 {
-  "description": "neverbor — compress tool output before Claude reads it; inject token-saving rules.",
+  "description": "neverbor — compress tool output before Claude reads it; inject token-saving rules; report savings.",
   "hooks": {
     "SessionStart": [
       {
@@ -20,6 +20,29 @@
           {
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/post_tool.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/pre_tool.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/stop.py\"",
             "timeout": 10
           }
         ]

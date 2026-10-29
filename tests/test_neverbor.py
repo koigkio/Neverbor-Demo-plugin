@@ -19,13 +19,31 @@ BUILD_LOG = "\n".join(
 )
 
 
-def run_hook(payload, home):
-    env = dict(os.environ, NEVERBOR_HOME=home)
+FIXTURES = os.path.join(ROOT, "tests", "fixtures")
+
+
+def fixture(name):
+    with open(os.path.join(FIXTURES, name), encoding="utf-8") as f:
+        return f.read()
+
+
+def run_script(script, payload, home, **env):
+    env = dict(os.environ, NEVERBOR_HOME=home, **env)
+    env.pop("NEVERBOR_PASSTHROUGH", None)
     p = subprocess.run(
-        [sys.executable, os.path.join(ROOT, "scripts", "post_tool.py")],
+        [sys.executable, os.path.join(ROOT, "scripts", script)],
         input=json.dumps(payload), capture_output=True, text=True, env=env,
     )
     return json.loads(p.stdout) if p.stdout.strip() else None
+
+
+def run_hook(payload, home):
+    return run_script("post_tool.py", payload, home)
+
+
+def bash(command, stdout, session="s1"):
+    resp = {"stdout": stdout, "stderr": "", "interrupted": False, "isImage": False}
+    return {"session_id": session, "tool_name": "Bash", "tool_input": {"command": command}, "tool_response": resp}
 
 
 class CompressTest(unittest.TestCase):
@@ -89,6 +107,134 @@ class HookTest(unittest.TestCase):
         p = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "post_tool.py")],
                            input="not json", capture_output=True, text=True)
         self.assertEqual((p.returncode, p.stdout), (0, ""))
+
+
+class FormatTest(unittest.TestCase):
+    def test_pytest_keeps_failures_and_summary(self):
+        text = fixture("pytest.txt")
+        out = compress.compress_text(text)
+        self.assertLess(len(out), len(text) * 0.15)
+        self.assertIn("test_case_097 FAILED", out)
+        self.assertIn("AssertionError: assert '12' == 12", out)
+        self.assertIn("2 failed, 312 passed", out)
+        self.assertNotIn("test_case_001 PASSED", out)
+
+    def test_jest_keeps_failure(self):
+        out = compress.compress_text(fixture("jest.txt"))
+        self.assertIn("✕ renders the empty state", out)
+        self.assertIn("Tests:       1 failed, 167 passed, 168 total", out)
+        self.assertIn("passing test lines", out)
+
+    def test_traceback_library_frames_collapsed(self):
+        out = compress.compress_text(fixture("traceback.txt"))
+        self.assertIn("library frames", out)
+        self.assertIn('File "/work/app/db.py", line 44', out)
+        self.assertIn("UndefinedTable", out)
+
+    def test_install_noise_collapsed_warnings_kept(self):
+        text = fixture("pip_install.txt")
+        out = compress.compress_text(text)
+        self.assertLess(len(out), len(text) * 0.2)
+        self.assertIn("WARNING: package-17", out)
+        self.assertIn("Successfully installed", out)
+
+    def test_diff_only_when_enabled(self):
+        text = fixture("git_diff.txt")
+        out = compress.compress_text(text, {"compress_diff": True})
+        for line in ("-    timeout = 30", "+    timeout = 60", "-    retries = 1", "+    retries = 3", "@@ -1,140 +1,140 @@"):
+            self.assertIn(line, out)
+        self.assertIn("unchanged lines", out)
+        self.assertNotIn("line_060", out)
+
+    def test_light_mode_skips_json_and_truncation(self):
+        items = json.dumps([{"id": i} for i in range(500)], indent=2)
+        self.assertIsNone(compress.compress_text(items, {"light": True}))
+        self.assertNotIn("library frames", compress.compress_text(fixture("traceback.txt"), {"light": True}) or "")
+
+
+class SessionTest(unittest.TestCase):
+    def setUp(self):
+        self.home = tempfile.mkdtemp()
+
+    def test_repeat_replaced_with_pointer(self):
+        text = "result line\n" + "x" * 400
+        self.assertIsNone(run_hook(bash("npm test", text), self.home))
+        out = run_hook(bash("npm test", text), self.home)
+        new = out["hookSpecificOutput"]["updatedToolOutput"]
+        self.assertIn("identical to the same command", new["stdout"])
+        # Different session or different output: shown in full.
+        self.assertIsNone(run_hook(bash("npm test", text, session="s2"), self.home))
+        self.assertIsNone(run_hook(bash("npm test", text + "!"), self.home))
+
+    def test_compaction_forgets_repeats(self):
+        text = "y" * 500
+        run_hook(bash("make", text), self.home)
+        run_script("session_start.py", {"session_id": "s1", "source": "compact"}, self.home)
+        self.assertIsNone(run_hook(bash("make", text), self.home))
+
+    def test_stop_reports_only_new_savings(self):
+        run_hook(bash("npm run build", BUILD_LOG), self.home)
+        msg = run_script("stop.py", {"session_id": "s1"}, self.home)
+        self.assertIn("neverbor:", msg["systemMessage"])
+        self.assertIsNone(run_script("stop.py", {"session_id": "s1"}, self.home))
+
+    def test_stop_language(self):
+        with open(os.path.join(self.home, "config.json"), "w") as f:
+            json.dump({"lang": "ru"}, f)
+        run_hook(bash("npm run build", BUILD_LOG), self.home)
+        self.assertIn("сэкономлено", run_script("stop.py", {"session_id": "s1"}, self.home)["systemMessage"])
+
+
+class ConfigTest(unittest.TestCase):
+    def setUp(self):
+        self.home = tempfile.mkdtemp()
+
+    def write(self, text):
+        with open(os.path.join(self.home, "config.json"), "w") as f:
+            f.write(text)
+
+    def test_broken_config_uses_defaults(self):
+        self.write("{not json")
+        out = run_hook(bash("npm run build", BUILD_LOG), self.home)
+        self.assertIn("[neverbor:", out["hookSpecificOutput"]["updatedToolOutput"]["stdout"])
+
+    def test_min_chars_from_config(self):
+        self.write(json.dumps({"min_chars": 10 ** 6}))
+        self.assertIsNone(run_hook(bash("npm run build", BUILD_LOG), self.home))
+
+    def test_passthrough_from_config(self):
+        self.write(json.dumps({"passthrough": "kubectl"}))
+        self.assertIsNone(run_hook(bash("kubectl logs api", BUILD_LOG), self.home))
+
+    def test_git_diff_compressed_only_with_flag(self):
+        diff = fixture("git_diff.txt")
+        self.assertIsNone(run_hook(bash("git diff", diff), self.home))
+        self.write(json.dumps({"compress_diff": True}))
+        out = run_hook(bash("git diff", diff, session="s9"), self.home)
+        self.assertIn("unchanged lines", out["hookSpecificOutput"]["updatedToolOutput"]["stdout"])
+
+
+class QuietTest(unittest.TestCase):
+    def setUp(self):
+        self.home = tempfile.mkdtemp()
+
+    def pre(self, command, **env):
+        payload = {"session_id": "s1", "tool_name": "Bash", "tool_input": {"command": command, "description": "d"}}
+        return run_script("pre_tool.py", payload, self.home, **env)
+
+    def test_off_by_default(self):
+        self.assertIsNone(self.pre("npm install"))
+
+    def test_rewrite_asks_for_approval(self):
+        open(os.path.join(self.home, "quiet-on"), "w").close()
+        out = self.pre("pip install requests")["hookSpecificOutput"]
+        self.assertEqual(out["permissionDecision"], "ask")
+        self.assertEqual(out["updatedInput"], {"command": "pip install requests -q", "description": "d"})
+
+    def test_compound_and_already_quiet_untouched(self):
+        open(os.path.join(self.home, "quiet-on"), "w").close()
+        for command in ("npm install && rm -rf x", "pip install -q x", "npm install $(cat list)", "git clone a | tee"):
+            self.assertIsNone(self.pre(command), command)
 
 
 if __name__ == "__main__":

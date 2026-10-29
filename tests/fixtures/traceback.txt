@@ -1,0 +1,134 @@
+Traceback (most recent call last):
+  File "/work/app/main.py", line 12, in <module>
+    app.run()
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 100, in fn_0
+    return self._call_0(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 107, in fn_1
+    return self._call_1(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 114, in fn_2
+    return self._call_2(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 121, in fn_3
+    return self._call_3(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 128, in fn_4
+    return self._call_4(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 135, in fn_5
+    return self._call_5(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 142, in fn_6
+    return self._call_6(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 149, in fn_7
+    return self._call_7(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 156, in fn_8
+    return self._call_8(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/psycopg2/extras.py", line 163, in fn_9
+    return self._call_9(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 170, in fn_10
+    return self._call_10(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 177, in fn_11
+    return self._call_11(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 184, in fn_12
+    return self._call_12(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 191, in fn_13
+    return self._call_13(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 198, in fn_14
+    return self._call_14(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 205, in fn_15
+    return self._call_15(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 212, in fn_16
+    return self._call_16(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 219, in fn_17
+    return self._call_17(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 226, in fn_18
+    return self._call_18(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/psycopg2/extras.py", line 233, in fn_19
+    return self._call_19(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 240, in fn_20
+    return self._call_20(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 247, in fn_21
+    return self._call_21(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 254, in fn_22
+    return self._call_22(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 261, in fn_23
+    return self._call_23(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 268, in fn_24
+    return self._call_24(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 275, in fn_25
+    return self._call_25(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 282, in fn_26
+    return self._call_26(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 289, in fn_27
+    return self._call_27(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 296, in fn_28
+    return self._call_28(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/psycopg2/extras.py", line 303, in fn_29
+    return self._call_29(*args, **kwargs)  # some long library source line here
+  File "/work/app/db.py", line 44, in load_orders
+    rows = session.execute(q).all()
+psycopg2.errors.UndefinedTable: relation "orders" does not exist
+LINE 1: SELECT * FROM orders
+Traceback (most recent call last):
+  File "/work/app/main.py", line 12, in <module>
+    app.run()
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 100, in fn_0
+    return self._call_0(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 107, in fn_1
+    return self._call_1(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 114, in fn_2
+    return self._call_2(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 121, in fn_3
+    return self._call_3(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 128, in fn_4
+    return self._call_4(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 135, in fn_5
+    return self._call_5(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 142, in fn_6
+    return self._call_6(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 149, in fn_7
+    return self._call_7(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 156, in fn_8
+    return self._call_8(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/psycopg2/extras.py", line 163, in fn_9
+    return self._call_9(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 170, in fn_10
+    return self._call_10(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 177, in fn_11
+    return self._call_11(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 184, in fn_12
+    return self._call_12(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 191, in fn_13
+    return self._call_13(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 198, in fn_14
+    return self._call_14(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 205, in fn_15
+    return self._call_15(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 212, in fn_16
+    return self._call_16(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 219, in fn_17
+    return self._call_17(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 226, in fn_18
+    return self._call_18(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/psycopg2/extras.py", line 233, in fn_19
+    return self._call_19(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 240, in fn_20
+    return self._call_20(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/flask/app.py", line 247, in fn_21
+    return self._call_21(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 254, in fn_22
+    return self._call_22(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/werkzeug/serving.py", line 261, in fn_23
+    return self._call_23(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 268, in fn_24
+    return self._call_24(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 275, in fn_25
+    return self._call_25(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 282, in fn_26
+    return self._call_26(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 289, in fn_27
+    return self._call_27(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 296, in fn_28
+    return self._call_28(*args, **kwargs)  # some long library source line here
+  File "/usr/lib/python3.12/site-packages/psycopg2/extras.py", line 303, in fn_29
+    return self._call_29(*args, **kwargs)  # some long library source line here
+  File "/work/app/db.py", line 44, in load_orders
+    rows = session.execute(q).all()
+psycopg2.errors.UndefinedTable: relation "orders" does not exist
+LINE 1: SELECT * FROM orders

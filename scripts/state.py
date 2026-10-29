@@ -1,18 +1,41 @@
-"""neverbor — where state lives: on/off flag, original-output cache, savings ledger."""
+"""neverbor — where state lives: flags, config, original-output cache, savings ledger, per-session index."""
 
 import hashlib
 import json
 import os
+import re
 import time
+
+import compress
 
 HOME = os.environ.get("NEVERBOR_HOME") or os.path.join(
     os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude"), "neverbor"
 )
 CACHE = os.path.join(HOME, "cache")
+SESSIONS = os.path.join(HOME, "sessions")
 LEDGER = os.path.join(HOME, "stats.jsonl")
+CONFIG = os.path.join(HOME, "config.json")
 OFF_FLAG = os.path.join(HOME, "off")
 TERSE_OFF_FLAG = os.path.join(HOME, "terse-off")
-CACHE_DAYS = 3
+QUIET_ON_FLAG = os.path.join(HOME, "quiet-on")
+
+# Everything a user can put in config.json; compress.DEFAULTS covers the compressor knobs.
+DEFAULTS = dict(
+    compress.DEFAULTS,
+    mode="normal",
+    cache_days=3,
+    passthrough="",  # extra regex of commands to leave untouched
+    rules_extra="",  # appended to the terse rules
+    compress_diff=False,
+    lang="en",  # language of the end-of-reply savings message: en | ru
+)
+
+# Presets sit between the defaults and the user's own keys.
+MODES = {
+    "light": {"light": True, "min_chars": 5000},
+    "normal": {},
+    "aggressive": {"max_lines": 80, "head": 25, "tail": 20, "min_saving": 0.1},
+}
 
 
 def enabled():
@@ -21,6 +44,45 @@ def enabled():
 
 def terse_enabled():
     return os.environ.get("NEVERBOR_TERSE", "1") != "0" and not os.path.exists(TERSE_OFF_FLAG)
+
+
+def quiet_enabled():
+    return os.environ.get("NEVERBOR_QUIET", "0") == "1" or os.path.exists(QUIET_ON_FLAG)
+
+
+def read_user_config():
+    try:
+        with open(CONFIG, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def write_user_config(data):
+    os.makedirs(HOME, exist_ok=True)
+    with open(CONFIG, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def load_config():
+    """defaults < mode preset < config.json < env vars. A broken file means defaults."""
+    user = read_user_config()
+    cfg = dict(DEFAULTS)
+    cfg.update(MODES.get(user.get("mode", "normal"), {}))
+    cfg.update({k: v for k, v in user.items() if k in DEFAULTS})
+    if os.environ.get("NEVERBOR_PASSTHROUGH"):
+        cfg["passthrough"] = os.environ["NEVERBOR_PASSTHROUGH"]
+    return cfg
+
+
+WIDE = re.compile(r"[Ѐ-ӿ぀-ヿ㐀-鿿가-힯]")
+
+
+def estimate_tokens(text):
+    """Latin text runs ~4 chars per token; Cyrillic and CJK closer to 2.5."""
+    wide = len(WIDE.findall(text))
+    return int((len(text) - wide) / 4 + wide / 2.5)
 
 
 def save_original(text):
@@ -33,20 +95,82 @@ def save_original(text):
     return path
 
 
-def record(tool, before, after):
+def record(tool, original, new, session_id="", cmd=""):
     os.makedirs(HOME, exist_ok=True)
+    row = {
+        "ts": int(time.time()),
+        "tool": tool,
+        "before": len(original),
+        "after": len(new),
+        "tok": max(0, estimate_tokens(original) - estimate_tokens(new)),
+        "session": session_id,
+        "cmd": cmd,
+    }
     with open(LEDGER, "a", encoding="utf-8") as f:
-        f.write(json.dumps({"ts": int(time.time()), "tool": tool, "before": before, "after": after}) + "\n")
+        f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
-def prune_cache():
-    if not os.path.isdir(CACHE):
+def read_ledger():
+    rows = []
+    try:
+        with open(LEDGER, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    rows.append(json.loads(line))
+                except ValueError:
+                    pass
+    except OSError:
+        pass
+    return rows
+
+
+def saved_tokens(row):
+    return row.get("tok", (row.get("before", 0) - row.get("after", 0)) // 4)
+
+
+def _session_path(session_id):
+    safe = re.sub(r"[^A-Za-z0-9_-]", "", session_id)[:80]
+    return os.path.join(SESSIONS, safe + ".json") if safe else None
+
+
+def load_session(session_id):
+    path = _session_path(session_id)
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            data.setdefault("seen", {})
+            return data
+    except (OSError, ValueError, TypeError):
+        pass
+    return {"seen": {}, "reported": 0}
+
+
+def save_session(session_id, data):
+    path = _session_path(session_id)
+    if not path:
         return
-    cutoff = time.time() - CACHE_DAYS * 86400
-    for name in os.listdir(CACHE):
-        path = os.path.join(CACHE, name)
-        try:
-            if os.path.getmtime(path) < cutoff:
-                os.remove(path)
-        except OSError:
-            pass
+    os.makedirs(SESSIONS, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+
+
+def forget_seen(session_id):
+    """After a compaction the model no longer has earlier outputs, so repeats must show in full again."""
+    data = load_session(session_id)
+    data["seen"] = {}
+    save_session(session_id, data)
+
+
+def prune_cache(days=3):
+    cutoff = time.time() - days * 86400
+    for folder in (CACHE, SESSIONS):
+        if not os.path.isdir(folder):
+            continue
+        for name in os.listdir(folder):
+            path = os.path.join(folder, name)
+            try:
+                if os.path.getmtime(path) < cutoff:
+                    os.remove(path)
+            except OSError:
+                pass

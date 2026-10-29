@@ -15,7 +15,7 @@ import state  # noqa: E402
 
 FOOTER_NOTE = (
     "Some tool outputs in this session are condensed by the neverbor plugin and end with a "
-    "`[neverbor: …]` footer naming a file with the full original. Read or Grep that file "
+    "`[neverbor: …]` footer naming a file with the full original; a repeated command with identical output is replaced by a pointer to the earlier run. Read or Grep that file "
     "(with offset/limit) only when the omitted part matters; don't re-run the command to see it."
 )
 
@@ -28,12 +28,23 @@ TERSE_RULES = """Token budget rules (neverbor plugin):
 
 
 def main():
-    state.prune_cache()
+    data = {}
+    try:
+        data = json.loads(sys.stdin.read().lstrip("\ufeff") or "{}")
+    except ValueError:
+        pass
+    cfg = state.load_config()
+    state.prune_cache(cfg["cache_days"])
+    if data.get("source") in ("compact", "clear") and data.get("session_id"):
+        state.forget_seen(data["session_id"])
     if not state.enabled():
         return
     context = FOOTER_NOTE
     if state.terse_enabled():
-        context = TERSE_RULES + "\n\n" + FOOTER_NOTE
+        rules = TERSE_RULES
+        if cfg["rules_extra"]:
+            rules += "\n- " + cfg["rules_extra"].strip()
+        context = rules + "\n\n" + FOOTER_NOTE
     json.dump({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}, sys.stdout)
 
 

@@ -1,6 +1,6 @@
 ---
-description: neverbor — savings stats and on/off switches
-argument-hint: "[stats|on|off|terse on|terse off]"
+description: neverbor — savings stats, modes, config and on/off switches
+argument-hint: "[stats [today|week|all]|on|off|mode light|normal|aggressive|config [key value]|terse on|off|quiet on|off]"
 allowed-tools: Bash(python3:*)
 ---
 !`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/neverbor.py" $ARGUMENTS`

@@ -5,6 +5,8 @@ Ideas borrowed from headroom (github.com/headroomlabs-ai/headroom):
   * log_compressor     -> dedupe_runs + keep_important (errors survive)
   * smart_crusher      -> crush_json (long arrays sampled, JSON minified)
   * CCR (reversible)   -> the caller saves the original and names it in a footer
+Own additions: passing-test and package-manager run collapsing, library stack
+frames, optional unified-diff context trimming, a "light" mode.
 """
 
 import json
@@ -115,6 +117,100 @@ def keep_important(lines, cfg):
     return out
 
 
+# Lines of a passing test: pytest -v, jest/vitest, go test, cargo test.
+PASSING_TEST = re.compile(
+    r"\sPASSED(\s|$)|^\s*[✓✔√]\s|^\s*PASS\s+\S|^\s*(=== (RUN|PAUSE|CONT)|--- PASS:)"
+    r"|^test \S.* \.\.\. ok$|^ok\s+\S+\s+[\d.]+s"
+)
+
+# Download / resolve / compile chatter from package managers and builds.
+INSTALL_NOISE = re.compile(
+    r"^\s*(Collecting|Downloading|Using cached|Requirement already satisfied|Obtaining|"
+    r"Preparing metadata|Getting requirements|Building wheel|Created wheel|Stored in directory|"
+    r"Compiling \S+ v\d|Fresh \S+ v\d|Downloaded \S+ v\d|Fetching|Resolving|Pouring|Already downloaded|"
+    r"==> (Downloading|Fetching|Pouring)|Progress: resolved|npm (http|sill|verb|timing))\b"
+    r"|^\s*[━█▓░#=]{10,}"  # progress bars printed as separate lines
+)
+
+# Stack frames that point into libraries rather than the user's code.
+LIB_FRAME = re.compile(
+    r'^\s*File ".*(site-packages|dist-packages|/lib/python\d)'
+    r"|^\s+at .*(node_modules|node:internal|\(internal/)"
+    r"|^\s+at (java|javax|jdk|sun|kotlin|org\.junit)\."
+)
+
+DIFF_HUNK = re.compile(r"^@@ -\d+(,\d+)? \+\d+(,\d+)? @@", re.MULTILINE)
+
+
+def collapse_runs(lines, pred, label, min_run=3):
+    """Replace runs of >= min_run matching lines with one counter line. Important lines always stay."""
+    out = []
+    run = []
+    for line in lines + [None]:
+        if line is not None and pred(line) and not IMPORTANT.search(line):
+            run.append(line)
+            continue
+        out.extend(["  … %d %s" % (len(run), label)] if len(run) >= min_run else run)
+        run = []
+        if line is not None:
+            out.append(line)
+    return out
+
+
+def collapse_lib_frames(lines, min_run=3):
+    """Long stack traces: keep the first and last library frame, count the rest."""
+    # Group a Python frame with its source line so they move together.
+    units = []
+    for line in lines:
+        if units and units[-1][0] and not LIB_FRAME.match(line) and line.startswith("    ") \
+                and len(units[-1][1]) == 1 and units[-1][1][0].lstrip().startswith("File "):
+            units[-1][1].append(line)
+        else:
+            units.append([bool(LIB_FRAME.match(line)), [line]])
+    out = []
+    i = 0
+    while i < len(units):
+        j = i
+        while j < len(units) and units[j][0]:
+            j += 1
+        if j - i >= min_run:
+            out.extend(units[i][1])
+            out.append("    … %d library frames" % (j - i - 2))
+            out.extend(units[j - 1][1])
+            i = j
+        else:
+            out.extend(units[i][1])
+            i += 1
+    return out
+
+
+def compress_diff(lines, context=3):
+    """Unified diff: keep every +/- line and header, trim unchanged context to ±context lines."""
+    out = []
+    i = 0
+    n = len(lines)
+    while i < n:
+        if not lines[i].startswith(" "):
+            out.append(lines[i])
+            i += 1
+            continue
+        j = i
+        while j < n and lines[j].startswith(" "):
+            j += 1
+        after_change = i > 0 and lines[i - 1][:1] in ("+", "-")
+        before_change = j < n and lines[j][:1] in ("+", "-")
+        keep_head = context if after_change else 0
+        keep_tail = context if before_change else 0
+        if j - i > keep_head + keep_tail + 1:
+            out.extend(lines[i : i + keep_head])
+            out.append("  … %d unchanged lines" % (j - i - keep_head - keep_tail))
+            out.extend(lines[j - keep_tail : j])
+        else:
+            out.extend(lines[i:j])
+        i = j
+    return out
+
+
 def _crush(value, max_items=12, max_str=400):
     if isinstance(value, list):
         if len(value) > max_items:
@@ -159,13 +255,21 @@ def compress_text(text, cfg=None):
     if not isinstance(text, str) or len(text) < cfg["min_chars"]:
         return None
 
-    out = crush_json(text)
+    out = None if cfg.get("light") else crush_json(text)
     if out is None:
         out = collapse_carriage_returns(strip_ansi(text))
-        out = elide_dense_lines(out)
-        lines = dedupe_runs(out.split("\n"))
-        if len(lines) > cfg["max_lines"]:
-            lines = keep_important(lines, cfg)
+        if cfg.get("light"):
+            lines = dedupe_runs(out.split("\n"))
+        elif cfg.get("compress_diff") and DIFF_HUNK.search(out):
+            lines = compress_diff(out.split("\n"))  # never truncate a diff: every change stays
+        else:
+            lines = elide_dense_lines(out).split("\n")
+            lines = collapse_runs(lines, PASSING_TEST.search, "passing test lines")
+            lines = collapse_runs(lines, INSTALL_NOISE.match, "package download/compile lines")
+            lines = collapse_lib_frames(lines)
+            lines = dedupe_runs(lines)
+            if len(lines) > cfg["max_lines"]:
+                lines = keep_important(lines, cfg)
         out = "\n".join(lines)
 
     if len(out) > len(text) * (1 - cfg["min_saving"]):
