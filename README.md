@@ -2,171 +2,176 @@
 
 # 🪶 Neverbor
 
-**Плагин для Claude Code, который бережёт контекст и лимиты.**
+**A Claude Code plugin that saves context and usage limits.**
 
-Сжимает «шумный» вывод *до того*, как его прочитает модель, помнит ход работы после `/compact` и не даёт Claude ходить по кругу.
+It shrinks noisy tool output *before* the model reads it, remembers your progress across `/compact`, and stops Claude from going in circles.
 
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?logo=python&logoColor=white)
-![Dependencies](https://img.shields.io/badge/зависимости-0-brightgreen)
+![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-**до −96% символов** на длинных выводах · без прокси · без API-ключей · оригиналы всегда под рукой
+**up to −96% characters** on long outputs · no proxy · no API keys · originals always kept
+
+[Русская версия](README.ru.md)
+
+<img src="assets/demo.gif" alt="pytest output with 314 tests: 18,870 characters without Neverbor, 1,246 with it (−93%)" width="720">
 
 </div>
 
 ---
 
-## ✨ Возможности
+## ✨ Features
 
-- 🗜 **Сжатие вывода Bash и MCP.** Убирает цвета, прогресс-бары и повторы, сокращает длинный JSON и огромные логи.
-- 🔁 **Ничего не теряется.** Полный оригинал сохраняется на диск, и Claude может прочитать его, если понадобится.
-- ✂️ **Короткие ответы.** В начале сессии Claude получает правила: без вступлений, пересказов и лишних перечитываний.
-- 🛡 **Безопасность прежде всего.** Точный вывод (`cat`, `git diff`, `Read`, `Edit`…) не трогается. Если хук упадёт, сессия продолжится как обычно.
-- 🧠 **Понимает частые выводы.** Установка пакетов — одна строка вместо сотен. В ошибках со стеком вызовов убираются кадры из библиотек. Длинные списки файлов группируются по папкам.
-- ♻️ **Повторы.** Та же команда с тем же выводом в этой сессии заменяется ссылкой на прошлый запуск.
-- 🎚 **Режимы и конфиг.** `light`, `normal`, `aggressive` и файл настроек для тонкой подстройки.
-- 📒 **Паспорт работы.** После `/compact` Claude снова знает, какие файлы менял и чем закончились команды, и не перечитывает всё заново.
-- 🔄 **Без хождения по кругу.** Одна и та же ошибка три раза подряд — и Claude получает подсказку сменить подход.
-- 🗺 **Карта проекта.** Папки, языки и команды сборки одной короткой справкой вместо долгого изучения.
-- 📖 **Без лишних перечитываний** *(по желанию)*. Неизменённый файл при повторном чтении заменяется ссылкой на уже прочитанную копию.
-- 📊 **Статистика.** `/neverbor stats today` покажет экономию за день и топ команд, а после ответа появится короткое сообщение, сколько токенов сэкономлено. Есть страница с графиком, советы по настройке и статус-строка.
+- 🗜 **Compresses Bash and MCP output.** Strips colors, progress bars and repeats; shortens long JSON and huge logs.
+- 🔁 **Nothing is lost.** The full original is saved to disk, and Claude can read it whenever it needs to.
+- ✂️ **Shorter answers.** At session start Claude gets a few rules: no preambles, no recaps, no needless re-reading.
+- 🛡 **Safety first.** Exact output (`cat`, `git diff`, `Read`, `Edit`…) is never touched. If the hook fails, the session goes on as usual.
+- 🧠 **Knows common outputs.** A package install becomes one line instead of hundreds. Library frames are folded in stack traces. Long file lists are grouped by folder.
+- ♻️ **Repeats.** The same command with the same output in one session is replaced by a pointer to the earlier run.
+- 🎚 **Modes and config.** `light`, `normal`, `aggressive`, plus a settings file for fine-tuning.
+- 📒 **Work log.** After `/compact` Claude still knows which files it changed and how the last commands ended, so it doesn't re-read everything.
+- 🔄 **No going in circles.** The same error three times in a row, and Claude is told to change its approach.
+- 🗺 **Project map.** Folders, languages and build commands in one short note instead of a long exploration.
+- 📖 **No needless re-reads** *(opt-in)*. Re-reading an unchanged file returns a pointer to the copy Claude already has.
+- 📊 **Stats.** `/neverbor stats today` shows the day's savings and top commands, and a short note after each answer says how many tokens were saved. There's also a chart page, tuning advice and a status line.
 
-## 📉 Замеры
+## 📉 Numbers
 
-| Команда | До | После | Экономия |
+| Command | Before | After | Saved |
 |---|---:|---:|---:|
-| `ls -laR` по репозиторию | 74 702 | 6 981 | **−91%** |
-| `find` по папке (2 900 файлов) | 303 371 | 18 328 | **−94%** |
+| `ls -laR` over a repo | 74 702 | 6 981 | **−91%** |
+| `find` in a folder (2 900 files) | 303 371 | 18 328 | **−94%** |
 | `grep -rn 'def '` | 242 930 | 37 566 | **−85%** |
-| JSON на 150 issues | 24 683 | 1 192 | **−96%** |
-| `pip install`, 60 пакетов | 15 088 | 1 143 | **−92%** |
-| стектрейс через flask/sqlalchemy | 10 392 | 1 236 | **−88%** |
-| `git diff` *(с `compress_diff`)* | 8 372 | 984 | **−88%** |
-| `cat Cargo.lock` | 139 846 | 139 846 | 0% *(намеренно)* |
+| JSON with 150 issues | 24 683 | 1 192 | **−96%** |
+| `pip install`, 60 packages | 15 088 | 1 143 | **−92%** |
+| `pytest -v`, 314 tests, 2 failing | 18 870 | 1 246 | **−93%** |
+| stack trace through flask/sqlalchemy | 10 392 | 1 236 | **−88%** |
+| `git diff` *(with `compress_diff`)* | 8 372 | 984 | **−88%** |
+| `cat Cargo.lock` | 139 846 | 139 846 | 0% *(on purpose)* |
 
-<sub>Размеры в символах; токенов примерно в 4 раза меньше.</sub>
+<sub>Sizes in characters; tokens are roughly 4× fewer. Reproduce with `python3 scripts/bench.py`.</sub>
 
-## 🚀 Установка
+## 🚀 Install
 
-Внутри Claude Code:
+Inside Claude Code:
 
 ```
 /plugin marketplace add koigkio/Neverbor-Demo-plugin
 /plugin install neverbor@neverbor
 ```
 
-Или из терминала:
+Or from a terminal:
 
 ```bash
 claude plugin marketplace add koigkio/Neverbor-Demo-plugin && claude plugin install neverbor@neverbor
 ```
 
-После установки перезапустите сессию.
+Restart the session after installing.
 
-**Что нужно:** Python 3.8 или новее. Neverbor сам найдёт его под именем `python3`, `python` или `py`.
+**Requires** Python 3.8 or newer. Neverbor finds it as `python3`, `python` or `py`.
 
-| Система | Что сделать |
+| System | What to do |
 |---|---|
-| macOS | обычно ничего. Если Python нет, система при первом запуске предложит установить Command Line Tools — согласитесь |
-| Linux | обычно ничего: Python 3 есть почти везде. Если нет — `sudo apt install python3` или аналог |
-| Windows | установите Python с [python.org](https://www.python.org/downloads/) или из Microsoft Store |
+| macOS | usually nothing. If Python is missing, macOS offers to install the Command Line Tools on first run — accept |
+| Linux | usually nothing: Python 3 is almost everywhere. Otherwise `sudo apt install python3` or similar |
+| Windows | install Python from [python.org](https://www.python.org/downloads/) or the Microsoft Store |
 
-Если Python не найден, плагин просто ничего не делает и Claude Code работает как обычно.
+Without Python the plugin simply does nothing and Claude Code works as usual.
 
-## 🎛 Команды
+## 🎛 Commands
 
-| Команда | Что делает |
+| Command | What it does |
 |---|---|
-| `/neverbor` или `/neverbor stats` | статистика экономии за всё время |
-| `/neverbor stats today` · `week` | за сегодня или за неделю, с топом команд |
-| `/neverbor on` · `/neverbor off` | включить или выключить сжатие |
-| `/neverbor brief` | паспорт работы: что Claude получит после `/compact` |
-| `/neverbor map` · `map on` · `map off` | карта проекта; `on` — добавлять её в начало каждой сессии |
-| `/neverbor reread on` · `off` | ссылка вместо повторного чтения неизменённого файла |
-| `/neverbor report` | страница с графиком экономии и топом команд |
-| `/neverbor advise` | советы по настройке на основе вашей статистики |
-| `/neverbor statusline` | экономия в статус-строке Claude Code (покажет, что добавить в настройки) |
-| `/neverbor mode light` · `normal` · `aggressive` | насколько сильно сжимать |
-| `/neverbor config` | показать настройки; `/neverbor config min_chars 4000` — изменить одну |
-| `/neverbor terse on` · `off` | правила краткости (со следующей сессии) |
-| `/neverbor quiet on` · `off` | «тихие» флаги для `npm install`, `pip install`, `git clone`, `cargo build` |
+| `/neverbor` or `/neverbor stats` | all-time savings |
+| `/neverbor stats today` · `week` | today or this week, with top commands |
+| `/neverbor on` · `/neverbor off` | turn compression on or off |
+| `/neverbor brief` | the work log Claude gets after `/compact` |
+| `/neverbor map` · `map on` · `map off` | project map; `on` adds it at the start of every session |
+| `/neverbor reread on` · `off` | a pointer instead of re-reading an unchanged file |
+| `/neverbor report` | a page with a savings chart and top commands |
+| `/neverbor advise` | tuning advice based on your stats |
+| `/neverbor statusline` | savings in the Claude Code status line (shows what to add to settings) |
+| `/neverbor mode light` · `normal` · `aggressive` | how hard to compress |
+| `/neverbor config` | show settings; `/neverbor config min_chars 4000` changes one |
+| `/neverbor terse on` · `off` | the brevity rules (from the next session) |
+| `/neverbor quiet on` · `off` | quiet flags for `npm install`, `pip install`, `git clone`, `cargo build` |
 
-**Режимы.** `light` — только цвета, прогресс-бары и повторы, от 5 000 символов. `normal` — всё сжатие (по умолчанию). `aggressive` — длинные выводы обрезаются сильнее: 80 строк вместо 150.
+**Modes.** `light` — only colors, progress bars and repeats, from 5 000 characters. `normal` — full compression (default). `aggressive` — long outputs are cut harder: 80 lines instead of 150.
 
-**Тихие флаги** выключены по умолчанию. Когда включены, Neverbor дописывает к простой команде флаг вроде `-q` и **всегда** спрашивает ваше подтверждение на изменённую команду. Составные команды (`&&`, `|`, `$(…)`) не трогаются.
+**Quiet flags** are off by default. When on, Neverbor adds a flag like `-q` to a simple command and **always** asks you to confirm the changed command. Compound commands (`&&`, `|`, `$(…)`) are left alone.
 
 <details>
-<summary><b>Тонкая настройка</b></summary>
+<summary><b>Fine-tuning</b></summary>
 
-Настройки лежат в `~/.claude/neverbor/config.json`. Менять их удобнее через `/neverbor config <ключ> <значение>`, сбросить — `/neverbor config <ключ> reset`.
+Settings live in `~/.claude/neverbor/config.json`. The easy way to change them is `/neverbor config <key> <value>`; reset with `/neverbor config <key> reset`.
 
-| Ключ | По умолчанию | Что значит |
+| Key | Default | Meaning |
 |---|---|---|
-| `min_chars` | `2500` | выводы короче не сжимаются |
-| `max_lines` · `head` · `tail` | `150` · `50` · `40` | длиннее `max_lines` строк остаются голова, хвост и все ошибки |
-| `min_saving` | `0.15` | не сжимать, если экономия меньше 15% |
-| `cache_days` | `3` | сколько дней хранить оригиналы |
-| `passthrough` | `""` | свои команды-исключения, regex: `rg\|kubectl` |
-| `compress_diff` | `false` | сжимать контекст в `git diff` (все `+`/`-` строки остаются) |
-| `rules_extra` | `""` | своё правило к правилам краткости |
-| `lang` | `"en"` | язык сообщения об экономии: `en` или `ru` |
-| `brief` | `true` | паспорт работы после `/compact` |
-| `reread` | `false` | ссылка вместо повторного чтения файла |
-| `map_on_start` | `false` | карта проекта в начале сессии |
+| `min_chars` | `2500` | shorter outputs are not compressed |
+| `max_lines` · `head` · `tail` | `150` · `50` · `40` | beyond `max_lines`, the head, the tail and every error line are kept |
+| `min_saving` | `0.15` | don't compress if it saves less than 15% |
+| `cache_days` | `3` | how many days originals are kept |
+| `passthrough` | `""` | your own exceptions, as a regex: `rg\|kubectl` |
+| `compress_diff` | `false` | compress context lines in `git diff` (all `+`/`-` lines stay) |
+| `rules_extra` | `""` | your own rule added to the brevity rules |
+| `lang` | `"en"` | language of the savings note: `en` or `ru` |
+| `brief` | `true` | work log after `/compact` |
+| `reread` | `false` | a pointer instead of re-reading a file |
+| `map_on_start` | `false` | project map at session start |
 
-Ещё:
-- `# neverbor:off` в конце bash-команды отключает сжатие только для неё.
-- `NEVERBOR=0` выключает сжатие через окружение, `NEVERBOR_TERSE=0` — правила краткости, `NEVERBOR_QUIET=1` включает тихие флаги.
-- `NEVERBOR_PASSTHROUGH='rg|kubectl'` важнее `passthrough` из конфига.
-- `NEVERBOR_DEBUG=1` выводит ошибки хука в stderr.
+Also:
+- `# neverbor:off` at the end of a bash command turns compression off for that command only.
+- `NEVERBOR=0` turns compression off through the environment, `NEVERBOR_TERSE=0` the brevity rules, `NEVERBOR_QUIET=1` turns quiet flags on.
+- `NEVERBOR_PASSTHROUGH='rg|kubectl'` wins over `passthrough` from the config.
+- `NEVERBOR_DEBUG=1` prints hook errors to stderr.
 
 </details>
 
-## ⚙️ Как это работает
+## ⚙️ How it works
 
 ```
-Claude вызывает Bash / MCP-инструмент
-        │  сырой вывод (логи, find, grep, JSON…)
+Claude calls Bash / an MCP tool
+        │  raw output (logs, find, grep, JSON…)
         ▼
-PostToolUse-хук  scripts/post_tool.py
-        │  0. та же команда и тот же вывод уже были в сессии? → ссылка на прошлый запуск
-        │  1. убирает ANSI-цвета и перерисовки прогресс-баров (\r)
-        │  2. режет минифицированный JS/base64 (длинные строки без пробелов)
-        │  3. строки загрузки пакетов → счётчик
-        │  4. стектрейсы: кадры из библиотек → «… N library frames»
-        │  5. схлопывает повторяющиеся и однотипные строки
-        │  6. JSON: минифицирует, длинные массивы → первые 5 + последние 2 + «ошибочные»
-        │  7. >150 строк: голова + хвост + все строки с error/fail/warning/traceback
-        │  8. оригинал → ~/.claude/neverbor/cache/…, в конце вывода ссылка на него
+PostToolUse hook  scripts/post_tool.py
+        │  0. same command, same output earlier in the session? → pointer to that run
+        │  1. strips ANSI colors and progress-bar redraws (\r)
+        │  2. cuts minified JS/base64 (long lines without spaces)
+        │  3. package download lines → a counter
+        │  4. stack traces: library frames → "… N library frames"
+        │  5. folds repeated and look-alike lines
+        │  6. JSON: minified, long arrays → first 5 + last 2 + the ones with errors
+        │  7. >150 lines: head + tail + every line with error/fail/warning/traceback
+        │  8. original → ~/.claude/neverbor/cache/…, with a pointer at the end
         ▼
-Claude видит сжатую версию и может прочитать оригинал, если нужно
+Claude sees the short version and can read the original if needed
 ```
 
-- `SessionStart` добавляет в контекст правила краткости, и так уменьшаются ещё и **выходные** токены. После сжатия контекста (`/compact`) он сбрасывает память о повторах, чтобы Claude снова видел выводы целиком.
-- `Stop` после ответа, где экономия больше 300 токенов, показывает вам короткое сообщение. В контекст модели оно не попадает.
-- `PreToolUse` работает, только если включены тихие флаги.
-- `PostToolUse` для `Edit`/`Write` ведёт журнал сессии: какие файлы менялись. `PostToolUseFailure` записывает упавшие команды и замечает повторяющиеся ошибки. Из журнала собирается паспорт работы после `/compact`.
-- Журнал хранится локально в `~/.claude/neverbor/sessions/` и никуда не отправляется.
+- `SessionStart` adds the brevity rules, which cuts **output** tokens too. After `/compact` it resets the repeat memory so Claude sees outputs in full again.
+- `Stop` shows you a short note after an answer that saved more than 300 tokens. It never reaches the model's context.
+- `PreToolUse` only acts when quiet flags are on.
+- `PostToolUse` on `Edit`/`Write` keeps a session log of changed files. `PostToolUseFailure` records failed commands and notices repeated errors. The work log after `/compact` is built from it.
+- The log is stored locally in `~/.claude/neverbor/sessions/` and is never sent anywhere.
 
-## 🛡 Что не сжимается
+## 🛡 What is never compressed
 
-- Вывод короче 2 500 символов или с экономией меньше 15%.
-- Команды точного просмотра: `cat`, `head`, `tail`, `sed`, `awk`, `jq`, `diff`, `git diff/show/blame` и т. п. Для diff это можно включить ключом `compress_diff`.
-- Инструменты `Read`, `Edit`, `Grep`: при правках Claude нужен точный текст. Единственное исключение — `reread on`: тогда повторное чтение неизменённого файла заменяется ссылкой, а если Claude попросит файл ещё раз сразу после этого, получит его целиком.
-- Команды, которые завершились с ошибкой: Claude Code не даёт менять их вывод.
+- Output under 2 500 characters, or where the saving is under 15%.
+- Exact-view commands: `cat`, `head`, `tail`, `sed`, `awk`, `jq`, `diff`, `git diff/show/blame` and the like. For diffs this can be turned on with `compress_diff`.
+- The `Read`, `Edit` and `Grep` tools: Claude needs exact text to edit. The one exception is `reread on`: re-reading an unchanged file returns a pointer, and if Claude asks for the file again right after, it gets it in full.
+- Commands that failed: Claude Code doesn't allow changing their output.
 
-Оригиналы хранятся 3 дня (`cache_days`) в `~/.claude/neverbor/cache/`.
+Originals are kept for 3 days (`cache_days`) in `~/.claude/neverbor/cache/`.
 
-## 🗺 Планы
+## 🗺 Roadmap
 
-- [x] Тихие флаги через `PreToolUse` — `/neverbor quiet on`.
-- [x] Сжатие `diff`: ±3 строки контекста — ключ `compress_diff`.
-- [x] Установка пакетов, стек вызовов, повторы, режимы, настройки, сообщение об экономии.
-- [x] Паспорт работы после `/compact`, подсказка при повторяющихся ошибках, карта проекта, отчёт и советы.
-- [ ] Больше форматов: `docker build`, `terraform plan`, `kubectl get`.
-- [ ] Сжатие длинных таблиц (`ls -la`, `ps aux`): оставлять нужные столбцы.
+- [x] Quiet flags via `PreToolUse` — `/neverbor quiet on`.
+- [x] Diff compression: ±3 context lines — `compress_diff`.
+- [x] Package installs, stack traces, repeats, modes, settings, savings note.
+- [x] Work log after `/compact`, repeat-failure hint, project map, report and advice.
+- [ ] More formats: `docker build`, `terraform plan`, `kubectl get`.
+- [ ] Long tables (`ls -la`, `ps aux`): keep the columns that matter.
 
-## 📄 Лицензия
+## 📄 License
 
 [MIT](LICENSE) © koigkio
