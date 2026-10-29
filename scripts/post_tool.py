@@ -16,6 +16,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import compress  # noqa: E402
+import journal  # noqa: E402
 import state  # noqa: E402
 
 # If the last stage of a command already shows a precise slice of something
@@ -142,18 +143,45 @@ def handle_bash(resp, command, cfg, ctx):
     return new
 
 
+def handle_read(resp, tool_input, session_id):
+    """Opt-in (`reread`): a full re-read of a file unchanged since the last full read gets a pointer."""
+    file = resp.get("file") if isinstance(resp, dict) and resp.get("type") == "text" else None
+    path = tool_input.get("file_path")
+    if not isinstance(file, dict) or not isinstance(file.get("content"), str) or not isinstance(path, str):
+        return None
+    partial = tool_input.get("offset") is not None or tool_input.get("limit") is not None
+    at = journal.reread_note(session_id, path, partial)
+    if not at:
+        return None
+    note = ("[neverbor: unchanged since you read it in full at %s, see that copy. If it is no longer in "
+            "your context, Read it again and it will be shown in full.]" % at)
+    state.record("Read", file["content"], note, session_id, "Read")
+    return dict(resp, file=dict(file, content=note))
+
+
 def main():
-    if not state.enabled():
-        return
     data = state.read_hook_input()
     tool = data.get("tool_name", "")
+    tool_input = data.get("tool_input") or {}
     resp = data.get("tool_response")
+    session_id = data.get("session_id") or ""
     cfg = state.load_config()
-    command = (data.get("tool_input") or {}).get("command", "") if tool == "Bash" else ""
-    words = last_stage(command).split()
-    ctx = {"session_id": data.get("session_id") or "", "cmd": words[0] if words else ""}
+    command = tool_input.get("command", "") if tool == "Bash" else ""
 
-    if tool == "Bash" and isinstance(resp, dict):
+    # The journal works even with compression off: it only records, never changes output.
+    if tool in journal.EDIT_TOOLS:
+        journal.note_edit(session_id, tool_input.get(journal.EDIT_TOOLS[tool]) or "?")
+        return
+    if tool == "Bash" and command:
+        journal.note_command(session_id, command)
+    if not state.enabled():
+        return
+    words = last_stage(command).split()
+    ctx = {"session_id": session_id, "cmd": words[0] if words else ""}
+
+    if tool == "Read":
+        new = handle_read(resp, tool_input, session_id) if cfg["reread"] else None
+    elif tool == "Bash" and isinstance(resp, dict):
         if should_skip(command, cfg):
             return
         new = handle_bash(resp, command, cfg, ctx)

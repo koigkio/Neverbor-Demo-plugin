@@ -29,6 +29,8 @@ DEFAULTS = dict(
     rules_extra="",  # appended to the terse rules
     compress_diff=False,
     lang="en",  # language of the end-of-reply savings message: en | ru
+    brief=True,  # put a short work log back into context after /compact
+    reread=False,  # replace a full re-read of an unchanged file with a pointer
 )
 
 # Presets sit between the defaults and the user's own keys.

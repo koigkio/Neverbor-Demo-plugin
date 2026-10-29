@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""neverbor CLI: `neverbor.py [stats [today|week|all]|on|off|terse on|off|quiet on|off|mode <name>|config [key value]]`."""
+"""neverbor CLI: `neverbor.py [stats [today|week|all]|on|off|terse on|off|quiet on|off|reread on|off|brief|
+mode <name>|config [key value]]`."""
 
 import json
 import os
@@ -7,10 +8,11 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import journal  # noqa: E402
 import state  # noqa: E402
 
 USAGE = ("usage: /neverbor [stats [today|week|all] | on | off | terse on|off | quiet on|off | "
-         "mode light|normal|aggressive | config [key value]]")
+         "reread on|off | brief | mode light|normal|aggressive | config [key value]]")
 PERIODS = {"today": None, "week": 7 * 86400, "all": None}
 
 
@@ -96,6 +98,26 @@ def config(args):
     state.write_user_config(user)
 
 
+def set_config(key, value):
+    user = state.read_user_config()
+    user[key] = value
+    state.write_user_config(user)
+
+
+def brief():
+    """Work log of the most recent session: what Claude gets back after /compact."""
+    try:
+        names = [n for n in os.listdir(state.SESSIONS) if n.endswith(".json")]
+    except OSError:
+        names = []
+    if not names:
+        print("neverbor: no session log yet.")
+        return
+    latest = max(names, key=lambda n: os.path.getmtime(os.path.join(state.SESSIONS, n)))
+    text = journal.brief(state.load_session(latest[:-5]), os.getcwd())
+    print(text or "neverbor: nothing logged in the latest session yet.")
+
+
 def main(args):
     words = [a for a in " ".join(args).split() if a]
     cmd = words[0].lower() if words else "stats"
@@ -114,10 +136,13 @@ def main(args):
         set_flag(state.QUIET_ON_FLAG, sub == "on")
         print("neverbor: quiet flags %s (each rewritten command asks for your approval)" % sub.upper()
               if sub == "on" else "neverbor: quiet flags OFF")
+    elif cmd == "reread" and sub in ("on", "off"):
+        set_config("reread", sub == "on")
+        print("neverbor: re-read pointers %s" % sub.upper())
+    elif cmd == "brief":
+        brief()
     elif cmd == "mode" and sub in state.MODES:
-        user = state.read_user_config()
-        user["mode"] = sub
-        state.write_user_config(user)
+        set_config("mode", sub)
         print("neverbor: mode %s" % sub)
     elif cmd == "config":
         config(rest)

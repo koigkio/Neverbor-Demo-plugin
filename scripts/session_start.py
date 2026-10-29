@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""neverbor — SessionStart hook: prune old cached outputs and add token-saving rules.
+"""neverbor — SessionStart hook: prune old cached outputs, add token-saving rules and,
+after /compact, a short log of the work so far.
 
 The rules cut OUTPUT tokens (what the model writes) and steer it toward
 small, targeted reads — the same idea as ponytail's injected ruleset and
@@ -10,6 +11,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import journal  # noqa: E402
 import state  # noqa: E402
 
 FOOTER_NOTE = (
@@ -33,16 +35,24 @@ def main():
         data = {}
     cfg = state.load_config()
     state.prune_cache(cfg["cache_days"])
-    if data.get("source") in ("compact", "clear") and data.get("session_id"):
-        state.forget_seen(data["session_id"])
-    if not state.enabled():
+    session_id = data.get("session_id") or ""
+    parts = []
+    if data.get("source") in ("compact", "clear") and session_id:
+        # The model no longer has earlier outputs: repeats and re-reads must show in full again.
+        state.forget_seen(session_id)
+        journal.forget_reads(session_id)
+        if data["source"] == "compact" and cfg["brief"]:
+            parts.append(journal.brief(state.load_session(session_id), data.get("cwd") or ""))
+    if state.enabled():
+        if state.terse_enabled():
+            rules = TERSE_RULES
+            if cfg["rules_extra"]:
+                rules += "\n- " + cfg["rules_extra"].strip()
+            parts.insert(0, rules)
+        parts.append(FOOTER_NOTE)
+    context = "\n\n".join(p for p in parts if p)
+    if not context:
         return
-    context = FOOTER_NOTE
-    if state.terse_enabled():
-        rules = TERSE_RULES
-        if cfg["rules_extra"]:
-            rules += "\n- " + cfg["rules_extra"].strip()
-        context = rules + "\n\n" + FOOTER_NOTE
     state.write_hook_output({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}})
 
 

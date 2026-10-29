@@ -273,5 +273,73 @@ class PlatformTest(unittest.TestCase):
         self.assertIn(b"updatedToolOutput", out)
 
 
+class JournalTest(unittest.TestCase):
+    def setUp(self):
+        self.home = tempfile.mkdtemp()
+        self.cwd = tempfile.mkdtemp()
+        self.file = os.path.join(self.cwd, "app.py")
+        with open(self.file, "w") as f:
+            f.write("print(1)\n")
+
+    def tool(self, name, tool_input, resp=None):
+        return run_script("post_tool.py", {"session_id": "s1", "tool_name": name, "tool_input": tool_input,
+                                           "tool_response": resp or {}}, self.home)
+
+    def fail(self, command, error="npm ERR! missing script: tset"):
+        return run_script("failure.py", {"session_id": "s1", "tool_name": "Bash", "tool_input": {"command": command},
+                                         "error": "Exit code 1\n" + error}, self.home)
+
+    def compact(self):
+        out = run_script("session_start.py", {"session_id": "s1", "source": "compact", "cwd": self.cwd}, self.home)
+        return out["hookSpecificOutput"]["additionalContext"]
+
+    def test_brief_after_compact(self):
+        self.tool("Edit", {"file_path": self.file})
+        self.tool("Edit", {"file_path": self.file})
+        self.tool("Bash", {"command": "npm run build"}, {"stdout": "ok", "stderr": ""})
+        self.fail("npm run tset")
+        ctx = self.compact()
+        self.assertIn("app.py (×2)", ctx)
+        self.assertIn("`npm run build` → ok", ctx)
+        self.assertIn("`npm run tset` → FAILED: npm ERR! missing script: tset", ctx)
+
+    def test_no_brief_on_fresh_start(self):
+        out = run_script("session_start.py", {"session_id": "s1", "source": "startup"}, self.home)
+        self.assertNotIn("work log", out["hookSpecificOutput"]["additionalContext"])
+
+    def test_loop_hint_after_three_same_failures(self):
+        self.assertIsNone(self.fail("npm run tset"))
+        self.assertIsNone(self.fail("npm run tset"))
+        out = self.fail("npm run tset")
+        self.assertIn("failed 3 times in a row", out["hookSpecificOutput"]["additionalContext"])
+
+    def test_loop_counter_resets_on_new_error_or_success(self):
+        self.fail("make")
+        self.fail("make")
+        self.assertIsNone(self.fail("make", "error: other thing"))
+        self.tool("Bash", {"command": "make"}, {"stdout": "ok", "stderr": ""})
+        self.assertIsNone(self.fail("make", "error: other thing"))
+
+    def read(self, **extra):
+        resp = {"type": "text", "file": {"filePath": self.file, "content": "print(1)\n", "numLines": 1,
+                                         "startLine": 1, "totalLines": 1}}
+        out = self.tool("Read", dict(file_path=self.file, **extra), resp)
+        return out and out["hookSpecificOutput"]["updatedToolOutput"]["file"]["content"]
+
+    def test_reread_off_by_default(self):
+        self.read()
+        self.assertIsNone(self.read())
+
+    def test_reread_pointer_once_then_full(self):
+        subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "neverbor.py"), "reread", "on"],
+                       capture_output=True, env=dict(os.environ, NEVERBOR_HOME=self.home))
+        self.assertIsNone(self.read())
+        self.assertIn("unchanged since", self.read())
+        self.assertIsNone(self.read())  # asked again right away: show it
+        self.assertIsNone(self.read(offset=1, limit=5))
+        self.tool("Edit", {"file_path": self.file})
+        self.assertIsNone(self.read())  # edited: full again
+
+
 if __name__ == "__main__":
     unittest.main()

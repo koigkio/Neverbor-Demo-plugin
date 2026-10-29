@@ -1,5 +1,5 @@
 {
-  "description": "neverbor — compress tool output before Claude reads it; inject token-saving rules; report savings.",
+  "description": "neverbor — keeps Claude's context lean: compresses tool output, keeps a work log across /compact, flags repeat failures, reports savings.",
   "hooks": {
     "SessionStart": [
       {
@@ -15,7 +15,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash|mcp__.*",
+        "matcher": "Bash|Read|Edit|Write|MultiEdit|NotebookEdit|mcp__.*",
         "hooks": [
           {
             "type": "command",
@@ -43,6 +43,18 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run.sh\" stop.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run.sh\" failure.py",
             "timeout": 10
           }
         ]
